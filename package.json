@@ -1,0 +1,22 @@
+{
+  "name": "fluff-kontra-slonce",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "node --import tsx --test test/*.test.ts"
+  },
+  "dependencies": {
+    "typegpu": "^0.12.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.0",
+    "@webgpu/types": "^0.1.70",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "unplugin-typegpu": "^0.12.1",
+    "vite": "^8.0.12"
+  }
+}

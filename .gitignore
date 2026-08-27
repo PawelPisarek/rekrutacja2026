@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.DS_Store
+# Rusztowanie robocze agenta. Ma wlasny `.gitignore` z `*`, ale przy publicznym repozytorium
+# regula jawna jest warta wiecej niz taka, ktora dziala przez efekt uboczny.
+.superpowers/

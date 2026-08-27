@@ -1,0 +1,64 @@
+# WDROZENIE NA GITHUB PAGES.
+#
+# ⛔ `npm test` STOI PRZED `npm run build`, I TO JEST CELOWE. Testy sa czysta logika w TypeScripcie
+# (bez GPU), wiec sa szybkie i lapia regresje mechaniki; build dopiero po nich, zeby zielony
+# artefakt nigdy nie powstal z kodu, ktory nie przeszedl bramki.
+#
+# ⚠️ `base` Vite'a MUSI zgadzac sie z nazwa repozytorium, inaczej Pages odda strone bez zasobow.
+# Ta wartosc zyje w JEDNYM miejscu — `scripts/adres.mjs` — i `vite.config.ts` ja stamtad importuje.
+#
+# ⚠️ Czego ten przebieg NIE sprawdza: niczego, co wymaga GPU. Bramki CDP (`scripts/bramka-*.mjs`)
+# steruja prawdziwym Chrome z WebGPU i zostaja bramka LOKALNA — biegacz GitHuba nie ma karty
+# graficznej, wiec uruchomione tutaj konczylyby sie falszywa czerwienia.
+
+name: Build i wdrozenie na GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Jedno wdrozenie naraz. `cancel-in-progress: false` — przerwane wdrozenie zostawia Pages
+# w polowie, wiec trwajace konczy sie do konca, a kolejne czeka.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  budowa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # `npm ci` (nie `npm install`) — instaluje DOKLADNIE to, co stoi w pliku blokady.
+      - run: npm ci
+
+      - run: npm test
+
+      - run: npm run build
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  wdrozenie:
+    needs: budowa
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.wdroz.outputs.page_url }}
+    steps:
+      - id: wdroz
+        uses: actions/deploy-pages@v4

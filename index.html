@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fluff kontra Słońce — kafel na stronie</title>
+    <!--
+      ⛔ TO JEST STRONA-GOSC, NIE APLIKACJA (docs/design.md §1a).
+
+      Dodatek ma byc KAFLEM wielkosci karty produktu, wstawionym w kolumne tresci — a nie
+      pelnoekranowa scena, ktora strone marki zaslania. Ta strona istnieje po to, zeby to bylo
+      widac: naglowek, akapit, kafel, akapit. Zero stylizacji pod marke — reguly zasobow (§8)
+      zabraniaja wymyslania, jak Fluff wyglada, wiec typografia jest systemowa i neutralna.
+
+      ⛔ ZADNEGO `100vw` / `100vh`. Kanwa ma `max-width: 420px` i `aspect-ratio: 1`, responsywnie
+      w dol przez `width: 100%`. Jesli kiedys wroci tu jednostka widoku, wroci tez blad ramy.
+    -->
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: #fbfaf8;
+        color: #2b2622;
+        font: 16px/1.65 -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      }
+      /* Kolumna tresci — kafel jest jednym z jej elementow, nie tlem pod nia. */
+      main { max-width: 640px; margin: 0 auto; padding: 48px 24px 96px; }
+      h1 { font-size: 28px; line-height: 1.25; margin: 0 0 16px; font-weight: 650; }
+      p { margin: 0 0 20px; }
+      .drobne { font-size: 14px; color: #6d635c; }
+
+      /* KAFEL: karta produktu, nie ekran. */
+      #kafel {
+        position: relative;
+        width: 100%;
+        max-width: 420px;
+        aspect-ratio: 1 / 1;
+        margin: 28px 0;
+        border-radius: 18px;
+        overflow: hidden;
+        border: 1px solid #e6e0d9;
+      }
+      #kafel canvas { width: 100%; height: 100%; display: block; touch-action: none; }
+      #brak {
+        display: none; position: absolute; inset: 0; place-content: center;
+        padding: 24px; text-align: center; color: #2b2622; background: #f1ece6;
+        font-size: 15px;
+      }
+      #brak.widoczny { display: grid; }
+      #hud {
+        position: absolute; left: 10px; top: 10px; color: #fff; opacity: .8;
+        font: 11px/1.4 ui-monospace, monospace; white-space: pre; pointer-events: none;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, .35);
+      }
+
+      /*
+        KARTA PRODUKTOWA — NAD KAFLEM, W KOLUMNIE TRESCI, A NIE NA KAFLU.
+        Kafel ma 420 px, a postac zajmuje jego dolna polowe: karta wjezdzajaca NA kafel zakrylaby
+        rozluzniona mine, ktora gracz przed chwila wywalczyl, i scisnelaby obrazek 96 px razem
+        z trzema wierszami tekstu do szerokosci kafla. W kolumnie karta dostaje pelna szerokosc —
+        `main` (linia wyzej) ma `max-width: 640px` i `padding: 48px 24px`, wiec uzyteczna szerokosc
+        to 640 - 2*24 = 592 px, NIE 640. Stad karta NIE MA wlasnego `max-width`: rosnie do 100%
+        szerokosci rodzica, czyli do tych 592 px. Uzasadnienie umiejscowienia: `src/ui/karta.ts`.
+
+        ⛔ GRANICA KOLORU: PIEC WARTOSCI PONIZEJ TO CHROM STRONY-GOSCIA, NIE GRAFIKA MARKI —
+        I ZADNA Z NICH NIE JEST TU WYMYSLONA. `#e6e0d9`, `#fff`, `#2b2622`, `#fbfaf8`, `#6d635c`
+        to DOKLADNIE te same piec wartosci, ktore ta strona uzywa juz WYZEJ w tym samym pliku,
+        zanim dotarlismy do #karta: `#fbfaf8`/`#2b2622` to tlo/tekst calego `body` (linie 22-23),
+        `#6d635c` to `.drobne` (linia 30), `#e6e0d9` to obwodka `#kafel` (linia 41), `#fff` to
+        kolor `#hud` (linia 51). Karta POZYCZA istniejacy neutralny system strony-gospodarza,
+        a nie dobiera wlasny — `docs/design.md` §1a wymaga, zeby strona-gospodarz byla „oszczedna
+        i neutralna" i zeby nie „odtwarzac layoutu ani identyfikacji Fluffa"; ten sam neutralny
+        chrom, ktory juz siedzi w `body`/`.drobne`/`#kafel`/`#hud`, obejmuje wiec i te piec
+        wartosci tutaj — karta nie dodaje nowej barwy, tylko powtarza te, ktore juz stoja wyzej.
+
+        1. WOLNO: uzywac tej piatki (i tylko tej piatki) do CHROMU karty — obwodki, tla, koloru
+           tekstu, przyciskow. Nowa wartosc spoza piatki i spoza `PALETA_DZIEN`/`PALETA_NOC`
+           (`src/logika/palety.ts`) LAMIE te granice, nie rozszerza jej.
+        2. NIE WOLNO uzywac tej reguly do usprawiedliwienia koloru w SCENIE (canvas WebGPU) —
+           tam obowiazuje wylacznie „Kolory tylko zmierzone" (`docs/plan-wdrozenia.md`) plus
+           udokumentowany wyjatek na barwe zagrozenia (`src/gpu/obraz.ts`, funkcja `zagrozenie`).
+        3. TO, CO W KARCIE JEST NAPRAWDE GRAFIKA MARKI — zdjecie produktu i tresc karty — nie jest
+           tu regulowane kolorem wcale, bo nie powstalo tutaj: obraz to bitmapa zaakceptowana
+           w `docs/design.md` §8, tekst jest doslowny ze specu §7 (`src/ui/karta.ts`, `KARTY`).
+           Ten komentarz dotyczy WYLACZNIE piatki kolorow CSS chromu, nie tego, co karta pokazuje.
+
+        Straznik: brak automatycznego testu (`test/palety.test.ts` liczy klucze `PALETA_*`, nie
+        CSS strony-gospodarza) — granica jest utrzymywana recznie, przy kazdej recenzji.
+      */
+      #karta {
+        display: flex; gap: 16px; align-items: flex-start;
+        margin: 0 0 24px; padding: 16px;
+        border: 1px solid #e6e0d9; border-radius: 14px; background: #fff;
+        opacity: 0; transform: translateY(10px);
+        transition: opacity .42s ease, transform .42s ease;
+      }
+      #karta[hidden] { display: none; }
+      #karta.widoczna { opacity: 1; transform: none; }
+      #karta img { width: 96px; height: 96px; border-radius: 10px; object-fit: cover; flex: none; }
+      #karta h2 { margin: 0 0 6px; font-size: 18px; line-height: 1.3; font-weight: 650; }
+      #karta p { margin: 0 0 12px; font-size: 14px; line-height: 1.5; }
+      .karta-przyciski { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+      .karta-sklep {
+        display: inline-block; padding: 8px 14px; border-radius: 999px;
+        background: #2b2622; color: #fbfaf8; text-decoration: none; font-size: 14px;
+      }
+      .karta-powrot {
+        padding: 8px 4px; border: 0; background: none; color: #6d635c;
+        font: inherit; font-size: 14px; text-decoration: underline; cursor: pointer;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #karta { transition: none; transform: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Filtr trzeba nakładać ponownie</h1>
+      <p>
+        Poniżej siedzi mały dodatek do strony. Rozsmaruj po nim palcem krem — blask gaśnie tam,
+        gdzie leży warstwa. Po kilku sekundach krem wysycha i pęka, więc trzeba domalować.
+      </p>
+
+      <!--
+        Gniazdo karty produktowej. Tresc buduje `src/ui/karta.ts` — tutaj tylko miejsce w kolumnie.
+
+        ⛔ NAD KAFLEM, A NIE POD NIM — I SKOK UKLADU JEST SWIADOMYM WYBOREM. Karta pojawia sie
+        dopiero po wygranej, wiec w chwili pokazania spycha kafel w dol. Rezerwowanie miejsca
+        (`min-height` na gniezdzie albo pusty zastepnik) usuneloby skok kosztem dziury w kolumnie
+        tresci przez cala pierwsza runde — dziury, ktorej czytelnik strony nie ma jak wytlumaczyc.
+        Wybrany zostal skok. Nie dokladaj tu `min-height`.
+      -->
+      <aside id="karta" hidden></aside>
+
+      <div id="kafel">
+        <canvas id="kanwa"></canvas>
+        <div id="hud"></div>
+        <div id="brak">Ta strona wymaga WebGPU. Odpal ją w Chrome albo na innym urządzeniu.</div>
+      </div>
+
+      <p class="drobne">
+        Prototyp: TypeGPU / WebGPU, cała grafika proceduralna. Kafel jest elementem kolumny
+        tekstu — ma się dać wstawić między akapity karty produktu, a nie zająć całe okno.
+      </p>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
