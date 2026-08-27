@@ -74,7 +74,8 @@ const SZEROKOSC_PEKNIECIA = 0.14;
  * ⛔ SZUM MUSI BYC NIECIAGLY, INACZEJ WARSTWA NIE PEKA, TYLKO SIE ROZMYWA.
  *
  * Zmierzone 2026-08-27, przyrzadem `Maska.probkuj` na 256 tekselach wzdluz osi smugi po 3,6 s
- * schniecia. Poprzednia wersja (dwie oktawy GLADKIEGO szumu wartosci, skala 11 i 29) dawala:
+ * schniecia (przy owczesnych `STALE_WYSYCHANIA` 0,14 / 0,22; po ich przepolowieniu ten sam stan
+ * warstwy wypada okolo 7 s — porownanie dotyczy szumu, a nie tempa, wiec liczby nizej zostaja). Poprzednia wersja (dwie oktawy GLADKIEGO szumu wartosci, skala 11 i 29) dawala:
  * `przejscia = 2`, `maxSkok = 0.0724`. Czyli na calej dlugosci smugi byly DWA przejscia miedzy
  * „jest warstwa" a „goly ekran" — jedna ciagla plama — a najwiekszy skok miedzy sasiednimi
  * tekselami rowny byl mniej wiecej progowi `0.06`.

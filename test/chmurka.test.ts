@@ -53,7 +53,8 @@ test('sylwetka jest lezaca kapsula: wyraznie szersza niz wyzsza', () => {
 
 test('gorna krawedz ma DOKLADNIE JEDEN garb — poprzednia miala trzy', () => {
   // ⛔ TO JEST TEST NA PRZYCZYNE REKLAMACJI. Poprzednia sylwetka miala trzy garby (duzy posrodku,
-  // dwa nizsze po bokach) i wlasnie ten uklad czytal sie fallicznie. Garb = lokalne minimum Y
+  // dwa nizsze po bokach) i wlasnie ten uklad budzil niezamierzone skojarzenia. Garb = lokalne
+  // minimum Y
   // (os idzie w dol) o wynioslosci powyzej progu, garby blizsze niz 0,05 w poziomie licza sie jako
   // jeden — ten sam licznik, ktorym poprzednia wersja tego pliku DOWODZILA, ze garby sa trzy.
   // Kapsula ma plaski szczyt, wiec cale plateau schodzi do jednego garbu i nie ma miedzy czym

@@ -6,10 +6,22 @@
 // Uzycie:
 //   node scripts/sonda.mjs --url <adres> --skrypt <wyrazenie JS> [--zrzut <plik.png>]
 //                           [--zrzut-wycinek <selektor CSS>] [--czekaj <ms>]
+//                           [--przed-zaladowaniem <wyrazenie JS>] [--nie-czekaj]
 //
 // Zachowanie:
 //   - otwiera NOWA karte pod adresem --url (PUT /json/new);
+//   - przy --przed-zaladowaniem otwiera karte na `about:blank`, wstrzykuje podany kod jako
+//     `Page.addScriptToEvaluateOnNewDocument` i DOPIERO POTEM nawiguje pod --url. ⛔ POTRZEBNE
+//     DO MIERZENIA SCIEZEK AWARYJNYCH: zeby sprawdzic, co strona pokazuje przy `navigator.gpu`
+//     bez adaptera, trzeba podmienic `requestAdapter` ZANIM wykona sie `main.ts`. Wstrzykniecie
+//     po zaladowaniu jest juz spoznione — modul zdazyl zapytac o adapter.
+//     ⚠️ Bez tej flagi sciezka jest DOKLADNIE ta, co byla: karta otwiera sie od razu pod --url.
 //   - czeka, az window.__gotowe === true, najdluzej --czekaj ms (domyslnie 8000);
+//   - przy --nie-czekaj POMIJA to czekanie. ⛔ WYLACZNIE DO SCIEZEK AWARYJNYCH: gdy mierzy sie,
+//     co strona pokazuje BEZ dzialajacego WebGPU, `__gotowe` z definicji nigdy nie wstanie, bo
+//     ustawia je dopiero gotowa scena. Bez tej flagi taki pomiar konczy sie kodem 3 i nie ma jak
+//     zajrzec na strone. ⚠️ Bramka, ktora tego uzyje na zdrowej scenie, mierzy niegotowy kadr —
+//     zadna z czterech tego nie robi i nie ma zaczac.
 //   - wykonuje --skrypt przez Runtime.evaluate (awaitPromise, returnByValue);
 //   - na stdout wypisuje WYLACZNIE JSON wyniku — bramki go parsuja, wiec zero ozdobnikow;
 //   - przy --zrzut zapisuje Page.captureScreenshot do podanego pliku;
@@ -25,7 +37,10 @@
 const BAZOWY_CDP = 'http://127.0.0.1:9222';
 
 function sparsujArgumenty(argv) {
-  const wynik = { url: undefined, skrypt: undefined, zrzut: undefined, wycinek: undefined, czekaj: 8000 };
+  const wynik = {
+    url: undefined, skrypt: undefined, zrzut: undefined, wycinek: undefined, czekaj: 8000,
+    przedZaladowaniem: undefined, nieCzekaj: false,
+  };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === '--url') wynik.url = argv[++i];
@@ -33,6 +48,8 @@ function sparsujArgumenty(argv) {
     else if (arg === '--zrzut') wynik.zrzut = argv[++i];
     else if (arg === '--zrzut-wycinek') wynik.wycinek = argv[++i];
     else if (arg === '--czekaj') wynik.czekaj = Number(argv[++i]);
+    else if (arg === '--przed-zaladowaniem') wynik.przedZaladowaniem = argv[++i];
+    else if (arg === '--nie-czekaj') wynik.nieCzekaj = true;
   }
   return wynik;
 }
@@ -45,9 +62,13 @@ async function main() {
     return;
   }
 
+  // Z `--przed-zaladowaniem` karta rodzi sie pusta, zeby bylo gdzie wpiac skrypt przed startem
+  // strony; nawigacja pod `--url` idzie nizej, juz po wpieciu.
+  const adresStartowy = args.przedZaladowaniem ? 'about:blank' : args.url;
+
   let nowaKarta;
   try {
-    const odp = await fetch(`${BAZOWY_CDP}/json/new?${encodeURIComponent(args.url)}`, { method: 'PUT' });
+    const odp = await fetch(`${BAZOWY_CDP}/json/new?${encodeURIComponent(adresStartowy)}`, { method: 'PUT' });
     if (!odp.ok) throw new Error(`CDP /json/new odpowiedzialo ${odp.status}`);
     nowaKarta = await odp.json();
   } catch (blad) {
@@ -90,10 +111,16 @@ async function main() {
 
     await posli('Runtime.enable', {});
 
+    if (args.przedZaladowaniem) {
+      await posli('Page.enable', {});
+      await posli('Page.addScriptToEvaluateOnNewDocument', { source: args.przedZaladowaniem });
+      await posli('Page.navigate', { url: args.url });
+    }
+
     // czekanie az strona ustawi window.__gotowe = true
     const startCzekania = Date.now();
-    let gotowe = false;
-    while (Date.now() - startCzekania < args.czekaj) {
+    let gotowe = args.nieCzekaj;
+    while (!gotowe && Date.now() - startCzekania < args.czekaj) {
       const sprawdz = await posli('Runtime.evaluate', {
         expression: 'window.__gotowe === true',
         returnByValue: true,

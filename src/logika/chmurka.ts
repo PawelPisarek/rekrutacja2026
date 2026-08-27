@@ -21,7 +21,7 @@
  *
  * Poprzednia sylwetka byla suma pieciu zlanych kol o roznych promieniach: duzy garb posrodku
  * i dwa nizsze po bokach. Uzytkownik zglosil, ze taki obrys — jeden wysoki srodek nad dwoma
- * niskimi bokami — czyta sie fallicznie. To NIE jest kwestia doboru promieni: przyczyna jest
+ * niskimi bokami — budzi niezamierzone skojarzenia. To NIE jest kwestia doboru promieni: przyczyna jest
  * strukturalna, bo trzy garby o roznej wysokosci zawsze ustawiaja sie w te sylwetke.
  *
  * Dlatego gorna krawedz jest teraz JEDNA krzywa bez wglebien: kapsula lezaca, czyli odleglosc
@@ -69,7 +69,8 @@ export const SRODEK_CHMURKI = { x: 0.5, y: 0.72 } as const;
  * ⛔ OBSZAR SKUTECZNY TO CZOLO, CZYLI TO, CO LEZY NAD OCZAMI.
  *
  * Bez tego gracz malowal po calym kaflu, a wiec i po twarzy maskotki — dlon zaslaniala dokladnie
- * te rzecz, ktora jest nagroda za malowanie („jak maluje po nim palcem, to go nie widze").
+ * te rzecz, ktora jest nagroda za malowanie (uzytkownik zglosil, ze malujac palcem, przestaje
+ * widziec maskotke).
  * Gdy liczy sie wylacznie czolo, palec pracuje NAD twarza i mina zostaje widoczna w trakcie.
  *
  * Wartosc jest wspolrzedna Y wzgledem srodka postaci: mniejsza (wyzej) = czolo. Musi lezec nad
@@ -89,8 +90,8 @@ export const LINIA_CZOLA = -0.044;
  * ⛔ DWA MALE CIEMNE OCZY, BEZ OPRAWY — I TO JEST DECYZJA UZYTKOWNIKA, NIE POWROT DO STANU.
  *
  * Zadanie F wstawilo tu gogle: dwie duze soczewki z rantem, spiete poziomym mostkiem. Uzytkownik
- * zobaczyl zrzut i powiedzial wprost: „ale ja nie chcialem takich okularow, poprzednie oczy mi sie
- * bardziej podobaly". Gogle wypadly wiec W CALOSCI — soczewki, rant i mostek — a zostaly proste
+ * zobaczyl zrzut i zglosil wprost, ze okularow nie chcial i ze woli proste ciemne oczy sprzed
+ * tamtej zmiany. Gogle wypadly wiec W CALOSCI — soczewki, rant i mostek — a zostaly proste
  * ciemne elipsy sprzed tamtej zmiany (promien 0,024), ktore mruza sie razem ze spiekiem.
  *
  * ⚠️ KSZTALT KAPSULY ZOSTAJE. To on rozwiazal zgloszona reklamacje obrysu i uzytkownik go nie

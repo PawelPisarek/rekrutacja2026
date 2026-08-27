@@ -27,10 +27,19 @@ export interface StanFaz {
  *   dwa przeciagniecia w dwoch rzedach    →  szczyt 1,000, nad progiem od 0,06 s do ponad 2,1 s
  *   trzy przeciagniecia                   →  szczyt 1,000, bez roznicy wobec dwoch
  *
+ * ⚠️ POWTORZONE 2026-08-27 PO PRZEPOLOWIENIU TEMPA WYSYCHANIA (`STALE_WYSYCHANIA`: 0,14 / 0,22
+ * → 0,07 / 0,11), bo wolniejsze schniecie trzyma pokrycie nad progiem dluzej i mogloby zrobic prog
+ * DARMOWYM. Nie zrobilo — jedno przeciagniecie dalej nie dochodzi do progu na ZADNEJ wysokosci:
+ *
+ *   jedno przeciagniecie, y = 0,585 / 0,600 / 0,615 / 0,645  →  szczyt 0,589 / 0,671 / 0,703 / 0,637,
+ *                                                               prog NIEOSIAGNIETY ani razu
+ *   dwa przeciagniecia w dwoch rzedach                       →  szczyt 1,000, nad progiem
+ *                                                               od 0,06 s do 3,79 s
+ *
  * ⛔ PROG JEST OSIAGALNY, ALE NIE DARMOWY, i o to chodzilo. `CZAS_POTWIERDZENIA` wynosi 1 s,
- * wiec DOMYKAJA GO DOKLADNIE DWA przejazdy: jeden nie dochodzi nawet do progu (0,574), dwa trzymaja
- * sie nad nim dluzej, niz trwa potwierdzenie. Trzeci nic nie dodaje. Wysychanie zabiera calosc po
- * okolo 3 s, wiec runda dalej jest wyscigiem.
+ * wiec DOMYKAJA GO DOKLADNIE DWA przejazdy: jeden nie dochodzi nawet do progu (najwyzej 0,703),
+ * dwa trzymaja sie nad nim dluzej, niz trwa potwierdzenie. Trzeci nic nie dodaje. Wysychanie
+ * zabiera calosc po okolo 8,9 s (bylo 4,7 s), wiec runda dalej jest wyscigiem — tylko wolniejszym.
  *
  * ⚠️ To, ze jeden przejazd NIE domyka fazy, jest wlasnoscia GEOMETRII, a nie tej stalej — i jest
  * ZMIERZONE TA SAMA WIELKOSCIA, o ktorej mowi to zdanie. Test „jeden poziomy przejazd nie domyka

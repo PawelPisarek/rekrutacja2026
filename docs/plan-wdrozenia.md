@@ -59,6 +59,12 @@ Każde zadanie dziedziczy poniższe wymagania.
 
 - **TypeGPU 0.12.3+; WebGPU obowiązkowo.** Brak `navigator.gpu` → komunikat tekstowy dokładnie
   w brzmieniu: *„Ta strona wymaga WebGPU. Odpal ją w Chrome albo na innym urządzeniu."*
+  ⛔ **Sama obecność `navigator.gpu` to za mało — trzeba spróbować wziąć adapter.** Zgłoszone
+  2026-08-27 z telefonu z Androidem: API było, `requestAdapter()` oddawało `null`, więc bramka
+  obecności przepuszczała i użytkownik dostawał **pusty kafel bez słowa wyjaśnienia**. `main.ts`
+  ma dziś całą ścieżkę startu w `try/catch`, a `zbadajWebGPU` (`src/logika/srodowisko.ts`)
+  rozróżnia `brak-api` / `brak-adaptera` / `blad-adaptera` / `blad-startu`. Każdy powód dopisuje
+  własne zdanie do komunikatu i **zawsze** trafia do konsoli.
 - **Brak dźwięku.** Żadnego `Audio`, `AudioContext`, żadnych plików dźwiękowych.
 - **Brak fallbacku graficznego.** Żadnego Canvas2D, żadnej klatki zastępczej.
 - **Dokładnie dwie bitmapy w całym projekcie:** `assets/produkt-dzien-spf50.webp`
@@ -114,9 +120,10 @@ kompilator z przeciążaniem operatorów. Tutaj jest zwykły TypeScript. **Używ
 `std.mul`, `std.div`.** Kopiowanie składni z tamtego projektu jeden do jednego się nie skompiluje.
 
 ⚠️ **Format maski to `rgba16float`, nie `rgba8unorm`.** Przy ośmiu bitach krok kwantyzacji wynosi
-1/255 i jest **większy** niż ubytek wysychania na klatkę — każdy teksel schodziłby o dokładnie
-jeden krok niezależnie od szumu, więc warstwa **płowiałaby równomiernie zamiast pękać**, a pękanie
-jest sednem mechaniki. Koszt: kopia B→A rośnie z 1 MB do 2 MB na klatkę.
+1/255 ≈ 0,0039 i jest **większy** niż ubytek wysychania na klatkę (0,0012–0,0030 przy 60 Hz) —
+każdy teksel schodziłby o dokładnie jeden krok niezależnie od szumu, więc warstwa **płowiałaby
+równomiernie zamiast pękać**, a pękanie jest sednem mechaniki. Koszt: kopia B→A rośnie z 1 MB
+do 2 MB na klatkę.
 
 ⚠️ **`widokDoOdczytu()` zwraca zawężony typ `WidokMaski`**, nie goły `TgpuTextureView` — ten
 ostatni jest unią i `std.textureLoad` go nie przyjmuje. To nadal jest widok tekstury, więc
@@ -401,15 +408,22 @@ node scripts/sonda.mjs --url http://localhost:5173/rekrutacja2026/ --skrypt \
  '(async()=>{__sonda.czysc();await new Promise(r=>setTimeout(r,300));const przed=__sonda.pokrycie();__sonda.pociagnij(0.25,0.2,0.75,0.8);__sonda.pociagnij(0.25,0.8,0.75,0.2);await new Promise(r=>setTimeout(r,400));return {przed,po:__sonda.pokrycie()}})()'
 # 2. Po kilku sekundach bez malowania pokrycie SPADA (krem schnie)
 node scripts/sonda.mjs --url http://localhost:5173/rekrutacja2026/ --czekaj 12000 --skrypt \
- '(async()=>{__sonda.pociagnij(0.25,0.2,0.75,0.8);await new Promise(r=>setTimeout(r,400));const zaraz=__sonda.pokrycie();await new Promise(r=>setTimeout(r,6000));return {zaraz,po6s:__sonda.pokrycie()}})()'
+ '(async()=>{__sonda.pociagnij(0.25,0.2,0.75,0.8);await new Promise(r=>setTimeout(r,400));const zaraz=__sonda.pokrycie();await new Promise(r=>setTimeout(r,12000));return {zaraz,po12s:__sonda.pokrycie()}})()'
 # 3. Malowanie w ROGU nie rusza licznika
 node scripts/sonda.mjs --url http://localhost:5173/rekrutacja2026/ --skrypt \
  '(async()=>{__sonda.czysc();await new Promise(r=>setTimeout(r,300));const przed=__sonda.pokrycie();__sonda.pociagnij(0.02,0.02,0.10,0.06);await new Promise(r=>setTimeout(r,400));return {przed,po:__sonda.pokrycie()}})()'
 ```
 
-Oczekiwane: (1) `po > przed + 0.2`; (2) `po6s < zaraz * 0.5`; (3) `|po - przed| < 0.01`.
+Oczekiwane: (1) `po > przed + 0.2`; (2) `po12s < zaraz * 0.5`; (3) `|po - przed| < 0.01`.
 Wyjście wszystkich trzech trafia do raportu zadania. Jeśli któraś nie wychodzi — strojenie liczb
 nie jest odpowiedzią, przyczyna leży gdzie indziej.
+
+⚠️ **Okno asercji 2 jest PRZELICZANE ze `STALE_WYSYCHANIA`, nie przepisywane.** Do 2026-08-27
+czekało 6 s, bo przy stałych 0,14 / 0,22 warstwa schodziła do zera po 4,7 s. Po przepołowieniu
+tempa (0,07 / 0,11) ten sam pomiar daje **8,9 s do zera i 3,8 s do połowy pokrycia**
+(`scripts/mierz-schniecie.mjs`, oba tryby), więc 6 s przestało wystarczać i okno urosło do
+**12 s** — 1,35× ponad zmierzone zniknięcie warstwy i 3,1× ponad czas dojścia do połowy.
+⛔ Próg `zaraz * 0.5` **zostaje**: gdy okno przestaje wystarczać, przelicza się okno, nie próg.
 
 - [ ] **Krok 7: Zatwierdzenie**
 

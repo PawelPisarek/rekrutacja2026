@@ -20,11 +20,15 @@ export const GRUP_NA_OS = MASKA_ROZMIAR / GRUPA_ROBOCZA[0]!;
  * ⛔ FORMAT MASKI: rgba16float, NIE rgba8unorm.
  *
  * Osiem bitow na kanal daje krok kwantyzacji 1/255 ≈ 0,0039. Wysychanie odejmuje na klatke
- * `dt * (baza + szum * amplituda)`, czyli przy 60 Hz od 0,0023 do 0,0060 — czyli MNIEJ niz jeden
- * krok kwantyzacji albo tyle co on. Po zaokragleniu KAZDY teksel schodzilby o dokladnie jeden
- * krok na klatke niezaleznie od szumu, wiec warstwa plowialaby rownomiernie zamiast pekac
- * w platki — dokladnie to, przed czym ostrzega `src/logika/wysychanie.ts`. W rgba16float krok
- * przy wartosci 0,5 to okolo 0,0005, wiec szum jest widoczny.
+ * `dt * (baza + szum * amplituda)`, czyli przy 60 Hz od 0,0012 do 0,0030 — czyli MNIEJ niz jeden
+ * krok kwantyzacji. Po zaokragleniu KAZDY teksel schodzilby o dokladnie jeden krok na klatke
+ * niezaleznie od szumu (albo nie schodzil wcale), wiec warstwa plowialaby rownomiernie zamiast
+ * pekac w platki — dokladnie to, przed czym ostrzega `src/logika/wysychanie.ts`. W rgba16float
+ * krok przy wartosci 0,5 to okolo 0,0005, wiec szum jest widoczny.
+ *
+ * ⚠️ Liczby przeliczone 2026-08-27 po przepolowieniu tempa schniecia. Wolniejsze schniecie
+ * ZAOSTRZA ten argument: ubytek na klatke zszedl PONIZEJ kroku kwantyzacji na calym zakresie
+ * szumu, wiec przy osmiu bitach czesc tekseli nie schodzilaby wcale.
  *
  * Koszt: kopia B→A na klatke rosnie z 1 MB do 2 MB. To wciaz ulamek milisekundy.
  */
@@ -157,7 +161,8 @@ export const wzgledemChmurki = tgpu.fn([d.vec2f], d.vec2f)((uv) => {
  *
  * ⚠️ ZMIANA ZADANIA C2. Do tej pory obszarem liczonym byl prostokat na caly kafel, przez co
  * celem malowania byl kafel, a nie chmurka: gracz wodzil palcem po calej powierzchni i zaslanial
- * soba dokladnie te rzecz, dla ktorej maluje („jak maluje po nim palcem, to go nie widze").
+ * soba dokladnie te rzecz, dla ktorej maluje (uzytkownik zglosil, ze malujac palcem, przestaje
+ * widziec maskotke).
  * Teraz liczy sie wylacznie GORNA POWIERZCHNIA postaci — czolo, nad oczami. Krem wolno
  * rozsmarowac gdziekolwiek po polu, ale punkty daje tylko to, co wyladowalo na czole, wiec dlon
  * pracuje NAD twarza i mina zostaje widoczna w trakcie malowania.

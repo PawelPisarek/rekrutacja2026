@@ -47,6 +47,9 @@
         font-size: 15px;
       }
       #brak.widoczny { display: grid; }
+      /* Zdanie dopisywane przez `src/logika/srodowisko.ts` przy awarii innej niz brak WebGPU —
+         wlasny odstep, bo `p` z kolumny tresci ma margines TYLKO od dolu. */
+      #brak p { margin: 10px 0 0; }
       #hud {
         position: absolute; left: 10px; top: 10px; color: #fff; opacity: .8;
         font: 11px/1.4 ui-monospace, monospace; white-space: pre; pointer-events: none;

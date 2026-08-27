@@ -1,0 +1,138 @@
+#!/usr/bin/env node
+// PRZYRZAD POMIAROWY: „PO ILU SEKUNDACH WARSTWA SCHODZI".
+//
+// ⛔ TO NIE JEST BRAMKA — nie ma progu i nie konczy sie czerwienia. Odpowiada na jedno pytanie:
+// jak POKRYCIE zmienia sie w czasie po jednym nalozeniu kremu, bez domalowywania. Z tej krzywej
+// bierze sie okno bramki „po kilku sekundach bez malowania pokrycie SPADA"
+// (`docs/plan-wdrozenia.md`, zadanie B, krok 6, asercja 2) — zamiast przepisywac liczbe policzona
+// dla poprzednich `STALE_WYSYCHANIA`.
+//
+// ⚠️ FAZA JEST PRZYPIETA (`ustawFaze(0)`), CO ZATRZYMUJE MASZYNE FAZ. Bez tego pomiar w trybie
+// `czolo` (pokrycie dochodzi do 1,0) przelaczylby sie po sekundzie w `dzien-karta`, a po trzech
+// dalszych w `zachod`, ktory CZYSCI maske — i „spadek pokrycia do zera" bylby wyczyszczeniem
+// sceny, nie wysychaniem. Wysychanie jedzie z `dt` petli klatki, wiec przypiecie fazy go nie tyka.
+//
+// ⚠️ PROFIL SCIAGANY JEST W CHWILI POLOWY POKRYCIA, nie na koncu serii. Na koncu warstwy juz nie
+// ma, wiec miary pekania (liczba przejsc „warstwa ↔ goly ekran", najwiekszy skok miedzy sasiednimi
+// tekselami) mierzylyby pusty ekran i wychodzilyby zerowe niezaleznie od tego, czy krem pekal.
+//
+// Uzycie: node scripts/mierz-schniecie.mjs [--url <adres> | --podglad] [--tryb skos|czolo] [--limit <ms>]
+// Kody wyjscia: 0 = pomiar wykonany, 2 = blad pomiaru.
+
+import { execFile } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+import { adresDev, adresPodgladu } from './adres.mjs';
+
+const KATALOG = dirname(fileURLToPath(import.meta.url));
+const SONDA = join(KATALOG, 'sonda.mjs');
+
+function argument(nazwa, domyslna) {
+  const i = process.argv.indexOf(nazwa);
+  return i >= 0 ? process.argv[i + 1] : domyslna;
+}
+
+const url = process.argv.includes('--podglad') ? adresPodgladu() : argument('--url', adresDev());
+/**
+ * `skos` — DOKLADNIE to pociagniecie, ktorego uzywa asercja 2 z planu wdrozenia (przekatna przez
+ * kadr, przecinajaca czolo waskim pasmem). `czolo` — dwa przejazdy w poprzek czola, czyli ruch
+ * gracza domykajacy runde; pokrycie startuje wtedy z 1,0, wiec krzywa jest dluzsza.
+ */
+const tryb = argument('--tryb', 'skos');
+const limit = Number(argument('--limit', '30000'));
+
+/** Odstep miedzy odczytami pokrycia. Licznik wraca z GPU co kilka klatek, drobniej nie ma sensu. */
+const OKRES_PROBKI = 100;
+
+const POCIAGNIECIA = {
+  skos: '[[0.25, 0.2, 0.75, 0.8, 20]]',
+  // Te same wspolrzedne, co w `scripts/bramka-fazy.mjs` — czolo kapsuly, x 0,114..0,886.
+  czolo: '[[0.12, 0.585, 0.88, 0.585, 30], [0.12, 0.645, 0.88, 0.645, 30]]',
+};
+const OSIE = {
+  skos: '[0.25, 0.2, 0.75, 0.8]',
+  czolo: '[0.12, 0.585, 0.88, 0.585]',
+};
+if (!POCIAGNIECIA[tryb]) {
+  console.error(`--tryb ma byc "skos" albo "czolo", jest "${tryb}"`);
+  process.exit(2);
+}
+
+const SKRYPT = `(async () => {
+  const s = window.__sonda;
+  const spij = (ms) => new Promise((r) => setTimeout(r, ms));
+  const os = ${OSIE[tryb]};
+  s.czysc();
+  s.ustawFaze(0);
+  await spij(300);
+  for (const [x0, y0, x1, y1, k] of ${POCIAGNIECIA[tryb]}) s.pociagnij(x0, y0, x1, y1, k);
+  await spij(400);
+
+  const start = performance.now();
+  const zaraz = s.pokrycie();
+  const seria = [{ ms: 0, pokrycie: zaraz }];
+  let profil = null;
+  let profilMs = null;
+  while (performance.now() - start < ${limit}) {
+    await spij(${OKRES_PROBKI});
+    const teraz = { ms: Math.round(performance.now() - start), pokrycie: s.pokrycie() };
+    seria.push(teraz);
+    if (profil === null && teraz.pokrycie < zaraz / 2) {
+      profilMs = teraz.ms;
+      profil = (await s.profil(os[0], os[1], os[2], os[3])).map((p) => p.grubosc);
+    }
+    if (teraz.pokrycie === 0) break;
+  }
+  s.ustawFaze(null);
+  return { zaraz, seria, profil, profilMs };
+})()`;
+
+const wynik = await new Promise((resolve, reject) => {
+  const argumenty = [SONDA, '--url', url, '--skrypt', SKRYPT, '--czekaj', String(limit + 15000)];
+  execFile(process.execPath, argumenty, { maxBuffer: 16 * 1024 * 1024 }, (blad, stdout, stderr) => {
+    if (blad) return reject(new Error(`sonda: ${stderr.trim() || blad.message}`));
+    try {
+      resolve(JSON.parse(stdout.trim()));
+    } catch {
+      reject(new Error(`sonda nie oddala JSON-a: ${stdout.trim()}`));
+    }
+  });
+});
+
+/** Pierwsza chwila, w ktorej pokrycie spelnia warunek; `null`, gdy nie spelnilo go do konca serii. */
+const pierwszaChwila = (warunek) => {
+  const trafienie = wynik.seria.find((p) => warunek(p.pokrycie));
+  return trafienie ? trafienie.ms / 1000 : null;
+};
+
+const polowa = wynik.zaraz / 2;
+const czasPolowy = pierwszaChwila((p) => p < polowa);
+const czasZera = pierwszaChwila((p) => p === 0);
+
+// Miary PEKANIA (lustro pomiaru z zadania B): ile razy profil przechodzi miedzy „jest warstwa"
+// a „goly ekran" i jaki jest najwiekszy skok miedzy sasiednimi tekselami.
+const g = wynik.profil ?? [];
+let przejscia = 0;
+let maxSkok = 0;
+for (let i = 1; i < g.length; i++) {
+  if ((g[i - 1] === 0) !== (g[i] === 0)) przejscia++;
+  maxSkok = Math.max(maxSkok, Math.abs(g[i] - g[i - 1]));
+}
+
+console.log(JSON.stringify({
+  tryb,
+  pokrycieZaraz: +wynik.zaraz.toFixed(6),
+  polowaPokrycia: +polowa.toFixed(6),
+  czasDoPolowy_s: czasPolowy,
+  czasDoZera_s: czasZera,
+  ostatniaProbka: wynik.seria[wynik.seria.length - 1],
+  probek: wynik.seria.length,
+  profil: g.length === 0 ? null : {
+    wChwili_s: wynik.profilMs / 1000,
+    probek: g.length,
+    przejscia,
+    maxSkok: +maxSkok.toFixed(4),
+    udzialZer: +(g.filter((w) => w === 0).length / g.length).toFixed(3),
+  },
+  seria: wynik.seria,
+}, null, 2));

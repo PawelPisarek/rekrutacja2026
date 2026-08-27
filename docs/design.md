@@ -53,8 +53,8 @@ Postać: chmurka na środku kadru, która smaży się bez ochrony i uspokaja pod
 ## 2a. Celem malowania jest CHMURKA, a nie kafel
 
 ⛔ **Obszarem liczonym jest górna powierzchnia chmurki — jej czoło — a nie prostokąt na cały
-kafel.** Wykryte 2026-08-27 po obejrzeniu wersji z zadania C2: *„jak maluję po nim palcem, to go
-nie widzę"*. Gdy licznik zliczał cały kafel, gracz wodził dłonią po całej powierzchni i zasłaniał
+kafel.** Wykryte 2026-08-27 po obejrzeniu wersji z zadania C2: użytkownik zgłosił, że malowanie
+palcem zasłania mu maskotkę. Gdy licznik zliczał cały kafel, gracz wodził dłonią po całej powierzchni i zasłaniał
 sobą dokładnie tę rzecz, która jest nagrodą za malowanie.
 
 Konsekwencje obowiązujące dalej:
@@ -62,11 +62,12 @@ Konsekwencje obowiązujące dalej:
 - **Postać jest dużym elementem kafla, osadzonym nisko** — dominuje, a nie zdobi środek.
   Sylwetka 0,78 × 0,32 przestrzeni maski, spód płaski, a górna krawędź to **jedna ciągła krzywa**:
   leżąca kapsuła (odcinek + promień), nie zlepek garbów. ⛔ Poprzedni obrys — duży garb pośrodku
-  nad dwoma niższymi po bokach — został **zgłoszony jako czytający się fallicznie**, a przyczyna
+  nad dwoma niższymi po bokach — został **zgłoszony jako budzący niezamierzone skojarzenia**, a przyczyna
   była strukturalna, nie w doborze promieni: trzy garby o różnej wysokości zawsze układają się
   w tę sylwetkę. Twarz: **dwoje małych ciemnych oczu** (mrużą się ze spiekiem) i kreska ust pod
   nimi. ⛔ Gogle z zadania F — soczewki, rant i mostek — **wypadły w całości** na wyraźne życzenie
-  użytkownika („poprzednie oczy mi się bardziej podobały"); kształt kapsuły został.
+  użytkownika, który zgłosił, że woli proste ciemne oczy sprzed tamtej zmiany; kształt
+  kapsuły został.
 - **Punkty daje tylko krem, który wylądował na czole.** Rozsmarować wolno gdziekolwiek —
   to dalej świecąca powierzchnia — ale dłoń pracuje **nad** oczami, więc mina zostaje widoczna
   w trakcie malowania. To jest cały sens poprawki.
@@ -80,8 +81,8 @@ Konsekwencje obowiązujące dalej:
 
 ⛔ **Żadnej barwy spoza `PALETA_DZIEN` i `PALETA_NOC`.** Zadanie C2 wpuściło na chwilę osobną
 listę barw „dobranych" (żółty rdzeń, pomarańczowe obrzeża, czerwień spieku) pod uzasadnieniem, że
-wróg i maskotka nie mówią niczego o produkcie. Użytkownik obejrzał wynik: *„wolałem kolory
-z palety, nie wiem czemu to musi być aż takie czerwone i pomarańczowe"*. Lista wypadła razem
+wróg i maskotka nie mówią niczego o produkcie. Użytkownik obejrzał wynik i zgłosił, że woli kolory
+z palety, a scena jest zbyt czerwona i pomarańczowa. Lista wypadła razem
 z funkcją, która ją wpuszczała.
 
 Zagrożenie budują odtąd: przepalenie do bieli w rdzeniu (jasność powyżej 1 przed tonowaniem ACES),
@@ -108,6 +109,7 @@ a filtr przeciwsłoneczny chroni przed UV, nie przed ekranem. Rozwiązanie jest 
 | **Prototyp na jedno urządzenie** — Mac, Chrome | nie wspieramy urządzeń; Android mile widziany, ale nietestowany i nieobiecywany |
 | **Brak dźwięku** | decyzja projektowa; dodatkowo przeglądarki blokują autoplay w `<iframe>` |
 | **Brak fallbacku graficznego** | przy braku `navigator.gpu` pokazujemy tekst: *„Ta strona wymaga WebGPU. Odpal ją w Chrome albo na innym urządzeniu."* |
+| **Zastępnik obejmuje TRZY przypadki, nie jeden** | ⛔ zgłoszone 2026-08-27 z prawdziwego telefonu z Androidem: `navigator.gpu` **istniało**, a `requestAdapter()` oddawało `null` — bramka sprawdzająca samą obecność API przepuszczała, `tgpu.init()` się wywracało i użytkownik widział **pusty kafel**. Dziś rozpoznawane są: brak API, brak adaptera, wyjątek przy starcie sceny; każdy dopisuje własne zdanie i **zawsze** wypisuje powód do konsoli (`src/logika/srodowisko.ts`) |
 | **Brak nagrania w zgłoszeniu** | brief dopuszcza sam link (*„materiały, linki **lub** nagranie"*) |
 | **Dwa ekrany, ~20 s zabawy** | to ma być dodatek do strony, nie aplikacja na tydzień |
 | **Zero wymyślania wyglądu marki** | żadnych zmyślonych logotypów, opakowań ani palet — patrz §8 |

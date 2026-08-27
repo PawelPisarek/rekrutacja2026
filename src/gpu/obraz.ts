@@ -101,8 +101,8 @@ const BIEL = d.vec3f(1, 1, 1);
  *
  * ⚠️ DLACZEGO NOC, A NIE DZIEN. Zadanie C2 cofnelo HURTEM cala liste barw dobranych
  * (`ZOLTY_RDZEN`, `POMARANCZ_*`, `CZERWIEN_SPIEKU`, `WEGIEL_SPIEKU` i ich nocne odpowiedniki),
- * bo uzytkownik obejrzal wynik i powiedzial: *„wolalem kolory z palety, nie wiem czemu to musi
- * byc az takie czerwone i pomaranczowe"*. Uwaga dotyczyla DNIA — a cofniecie objelo takze NOC
+ * bo uzytkownik obejrzal wynik i zglosil, ze woli kolory z palety, a scena jest zbyt czerwona
+ * i pomaranczowa. Uwaga dotyczyla DNIA — a cofniecie objelo takze NOC
  * i tym samym bylo za szerokie. Blekit niesie caly sens fazy nocnej: swiatlo niebieskie z ekranu
  * jest tym, przed czym Sleeping Cream z Synchrolife™ ma chronic. Bez blekitu noc jest
  * szaro-lawendowa i nieodroznialna od dnia, czyli faza istnieje w uniformie, a nie na ekranie.
@@ -188,7 +188,7 @@ const OPAD_JADRA = 5.0;
  * Do teraz noc mieszala `BLEKIT_OBRZEZE` z `NIEBIESKI_RDZEN` po `jadro`, czyli po TYM SAMYM
  * gradiencie, ktory niesie moc pola (`OPAD_JADRA` = 5). Na krawedzi kadru `jadro` schodzi do 0,05,
  * ale barwa docelowa BYLA TAM elektrycznym blekitem — wiec blekit zalewal caly kafel i nocna scena
- * czytala sie jako jeden nasycony niebieski prostokat („cala scena nocna jest nasyconym blekitem").
+ * czytala sie jako jeden nasycony niebieski prostokat — i tak tez zostala zgloszona.
  *
  * Zimno dostaje wiec WLASNY, szybszy opad: przy 7,0 spada do 0,1 na promieniu 0,33 przestrzeni
  * maski, czyli mniej wiecej w polowie drogi od srodka do rogu kadru. Poza nim swiatlo
@@ -210,7 +210,7 @@ const MOC_SYMBOLU_NOC = 0.85;
  * rysowac. Drganie powietrza, ktore jechalo na poswiacie, siedzi teraz w `falowanie`.
  */
 /**
- * ⛔ CHMURKA MA BYC JASNA, PRAWIE BIALA — NIE SZARA („chmurka wyglada jak cebula").
+ * ⛔ CHMURKA MA BYC JASNA, PRAWIE BIALA — NIE SZARA; w zgloszeniu zostala porownana do cebuli.
  *
  * Sama barwa nie wystarczyla: `mix(krem, biel)` przemnozone przez swiatlo otoczenia 0,92
  * wracalo z tonowania okolo 0,63 w sRGB, czyli jako szarosc obok przepalonego pola. Chmurka
@@ -384,7 +384,7 @@ const PODPOWIEDZ_ZANIK = 0.020;
  * Rysy twarzy: 1 tam, gdzie ma byc ciemna kreska. `spiek` 0 = spokoj, 1 = grymas.
  *
  * ⛔ DWIE CZESCI: OCZY I USTA. Gogle — soczewki, rant i mostek — wypadly w calosci na wyrazne
- * zyczenie uzytkownika („poprzednie oczy mi sie bardziej podobaly"), wiec wrocily proste ciemne
+ * zyczenie uzytkownika, ktory zglosil, ze woli poprzednie oczy — wiec wrocily proste ciemne
  * elipsy. Mruza sie, czyli splaszczaja w pionie, razem ze spiekiem; usta przechodza z usmiechu
  * w podkowe w dol. Mina jest jednym z pieciu nosnikow zagrozenia, ktory NIE jest odcieniem.
  */
