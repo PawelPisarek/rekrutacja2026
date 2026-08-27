@@ -10,8 +10,8 @@ import type { KolorSceny } from './obraz.ts';
  * i blask wycinka. Wydzielone ze `scena.ts` (zadanie C2, uwaga W3): scena nie ma powodu wiedziec,
  * jak mierzy sie jej wlasny obraz, a `scena.ts` urosl przez to do 706 linii.
  *
- * ⚠️ SIATKA IDZIE PO `POLE`, NIE PO OBSZARZE LICZONYM. Odkad mianownikiem pokrycia jest czolo
- * chmurki, siatka rozpieta na nim nie widzialaby ani swiecacej powierzchni, ani gruntu kafla —
+ * ⚠️ SIATKA IDZIE PO `POLE`, NIE PO OBSZARZE LICZONYM. Odkad mianownikiem pokrycia jest sama
+ * postac, siatka rozpieta na niej nie widzialaby ani swiecacej powierzchni, ani gruntu kafla —
  * czyli niczego, co bramki mierza. Pole obejmuje jedno i drugie.
  *
  * ⚠️ DLACZEGO NIE `drawImage` Z KANWY. Zmierzone w zadaniu C: przerysowanie kanwy WebGPU do

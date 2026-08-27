@@ -1,7 +1,7 @@
 import { tgpu, d, std } from 'typegpu';
 import type { TgpuTextureView } from 'typegpu';
 import {
-  LINIA_CZOLA, POLOWA_KAPSULY, PROMIEN_KAPSULY, SPOD, SRODEK_CHMURKI, ZLACZENIE_SPODU,
+  POLOWA_KAPSULY, PROMIEN_KAPSULY, SPOD, SRODEK_CHMURKI, ZLACZENIE_SPODU,
 } from '../logika/chmurka.ts';
 
 /**
@@ -69,8 +69,8 @@ export const Sterowanie = d.struct({
  * z definicji istniala „na zewnatrz pola", a zewnetrza juz nie ma.
  *
  * ⚠️ DO ZADANIA C2 TA STALA NAZYWALA SIE `WROG` I BYLA MIANOWNIKIEM POKRYCIA. Nie jest juz nim:
- * liczy sie wylacznie czolo chmurki (`obszarWroga`). Zostaje jako granice siatki probek przyrzadu
- * — czyli po prostu „caly kadr".
+ * liczy sie wylacznie SYLWETKA postaci (`obszarWroga`). Zostaje jako granice siatki probek
+ * przyrzadu — czyli po prostu „caly kadr".
  */
 export const POLE = { x0: 0, x1: 1, y0: 0, y1: 1 } as const;
 
@@ -153,19 +153,29 @@ export const wzgledemChmurki = tgpu.fn([d.vec2f], d.vec2f)((uv) => {
 });
 
 /**
- * ⛔ 1 NA CZOLE CHMURKI, 0 POZA — I TO JEST CALY MIANOWNIK POKRYCIA.
+ * ⛔ 1 WEWNATRZ CALEJ SYLWETKI, 0 POZA — I TO JEST CALY MIANOWNIK POKRYCIA.
  *
- * JEDNA definicja na caly projekt: licznik pokrycia i fragment pytaja o ten sam ksztalt. Dwie
- * kopie rozjechalyby sie po cichu, a objaw — „licznik rosnie tam, gdzie nic nie widac" —
- * szukaloby sie w shaderze.
+ * JEDNA definicja na caly projekt: licznik pokrycia i fragment pytaja o ten sam ksztalt
+ * (`sdfChmurki`, lustro `logika/chmurka.ts`). Dwie kopie rozjechalyby sie po cichu, a objaw —
+ * „licznik rosnie tam, gdzie nic nie widac" — szukaloby sie w shaderze.
  *
- * ⚠️ ZMIANA ZADANIA C2. Do tej pory obszarem liczonym byl prostokat na caly kafel, przez co
- * celem malowania byl kafel, a nie chmurka: gracz wodzil palcem po calej powierzchni i zaslanial
- * soba dokladnie te rzecz, dla ktorej maluje (uzytkownik zglosil, ze malujac palcem, przestaje
- * widziec maskotke).
- * Teraz liczy sie wylacznie GORNA POWIERZCHNIA postaci — czolo, nad oczami. Krem wolno
- * rozsmarowac gdziekolwiek po polu, ale punkty daje tylko to, co wyladowalo na czole, wiec dlon
- * pracuje NAD twarza i mina zostaje widoczna w trakcie malowania.
+ * ⛔ ZMIERZONE COFNIECIE ZAWEZENIA Z ZADANIA C2. Do 2026-08-28 liczyl sie tylko PAS CZOLA (`step`
+ * po `LINIA_CZOLA`). Zawezenie rozwiazalo zaslanianie miny dlonia i STWORZYLO GORSZY PROBLEM:
+ * gra przestala reagowac na gest, ktory czlowiek wykonuje bez instrukcji. Zmierzone sonda CDP
+ * na zywej scenie (`scripts/mierz-gesty.mjs`, mianownik = czolo, prog 0,85):
+ *
+ *   poziomo przez SRODEK KAFLA          →  szczyt 0,000  (srodek kafla lezy NAD postacia)
+ *   krzyz przez caly kafel              →  szczyt 0,126
+ *   bazgranie po kaflu, szesc pociagniec→  szczyt 0,723, progu 0,85 NIE dotyka ani razu
+ *   celnie w pas czola                  →  szczyt 1,000
+ *
+ * Trafial wiec wylacznie ten, kto WIE o waskim pasie czola — a nie ma skad tego wiedziec.
+ * Dzis obszarem liczonym jest CALA SYLWETKA: gracz smaruje postac, czyli robi to, co widzi.
+ *
+ * ⚠️ MINA ZOSTAJE CZYTELNA MIMO KREMU NA TWARZY, i to jest wlasnosc MATERIALU, a nie obszaru:
+ * krycie warstwy nigdy nie dochodzi do 1 (`KRYCIE_SWIEZE` / `KRYCIE_DOJRZALE` w `obraz.ts`), wiec
+ * oczy i usta przeswiecaja przez krem. Sprawdzone zrzutem kafla przy pokryciu 0,98: rysy twarzy
+ * dalej sa najciemniejszym miejscem postaci.
  *
  * ⚠️ CHMURKA NIE KOLYSZE SIE JUZ W PIONIE. Kolysanie bylo funkcja czasu, a licznik pokrycia
  * nie ma uniformu sceny — ksztalt liczony rozjezdzalby sie z rysowanym o +-0,008 w kazdej
@@ -173,10 +183,7 @@ export const wzgledemChmurki = tgpu.fn([d.vec2f], d.vec2f)((uv) => {
  */
 export const obszarWroga = tgpu.fn([d.vec2f], d.f32)((uv) => {
   'use gpu';
-  const p = wzgledemChmurki(uv);
-  const wSylwetce = std.step(sdfChmurki(p), d.f32(0));
-  const nadOczami = std.step(p.y, d.f32(LINIA_CZOLA));
-  return wSylwetce * nadOczami;
+  return std.step(sdfChmurki(wzgledemChmurki(uv)), d.f32(0));
 });
 
 /**

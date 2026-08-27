@@ -15,10 +15,14 @@
 /**
  * Promien pedzla w przestrzeni maski. Okolo 28 tekseli przy masce 512.
  *
- * ⚠️ ZMNIEJSZONY Z 0,075 RAZEM ZE ZMIANA CELU. Odkad liczy sie czolo postaci (pasmo wysokie na
- * `PROMIEN_KAPSULY + LINIA_CZOLA` = 0,126 — po zmianie sylwetki na kapsule, wczesniej 0,094),
- * pedzel o promieniu 0,075 mial srednice wieksza niz caly obszar liczony: jedno przeciagniecie
- * kladlo na postac prostokatna plyte, ktora zakrywala jej obrys, i domykalo prog w jednym ruchu.
+ * ⚠️ ZMNIEJSZONY Z 0,075 W CZASACH, GDY OBSZAREM LICZONYM BYL SAM PAS CZOLA (wysoki na 0,126):
+ * pedzel o promieniu 0,075 mial wtedy srednice wieksza niz caly obszar liczony, wiec jedno
+ * przeciagniecie kladlo na postac prostokatna plyte i domykalo prog w jednym ruchu.
+ *
+ * ⚠️ OBSZAREM LICZONYM JEST DZIS CALA SYLWETKA (wysoka na 0,316), wiec tamten powod juz nie
+ * obowiazuje — ale liczba zostaje, bo podnoszenie promienia dzialaloby przeciwko wybaczliwosci
+ * z drugiej strony: szerszy pedzel to WIEKSZY udzial obszaru pod jednym ruchem, czyli blizej
+ * do „jeden przejazd domyka runde". Zmierzone: przy 0,055 jeden przejazd daje 0,299 obszaru.
  *
  * ⚠️ TO, ZE JEDEN PRZEJAZD NIE DOMYKA RUNDY, JEST MIERZONE, A NIE WYWNIOSKOWANE Z TEJ LICZBY —
  * patrz test „jeden poziomy przejazd nie domyka progu pokrycia" (`test/chmurka.test.ts`), ktory

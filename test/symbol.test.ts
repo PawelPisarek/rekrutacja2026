@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { czyChmurka, czyCzolo, ramka, udzial } from '../src/logika/chmurka.ts';
+import { czyChmurka, ramka, udzial } from '../src/logika/chmurka.ts';
 import {
   czyWZasieguSymbolu, PROMIEN_TARCZY, SRODEK_SYMBOLU, ZASIEG_SYMBOLU,
 } from '../src/logika/symbol.ts';
@@ -15,34 +15,12 @@ import { POLE, WYCINEK_SZKLA } from '../src/gpu/wspolne.ts';
  * liczy potok `Pokrycie` — czyli test pyta o czesc wspolna, a nie o granice pudelek.
  */
 
-test('symbol nie ma ani jednego punktu wspolnego z obszarem liczonym', () => {
-  const G = 512;
-  let wspolne = 0;
-  for (let j = 0; j < G; j++) {
-    const y = (j + 0.5) / G;
-    for (let i = 0; i < G; i++) {
-      const x = (i + 0.5) / G;
-      if (czyWZasieguSymbolu(x, y) && czyCzolo(x, y)) wspolne++;
-    }
-  }
-  assert.equal(wspolne, 0, `symbol wchodzi w czolo na ${wspolne} tekselach — mieszalby w liczniku`);
-});
-
-test('mianownik pokrycia nie wie o symbolu — udzial czola jest ten sam z nim i bez niego', () => {
-  // ⛔ SABOTAZ WLASNEGO KRYTERIUM. Test wyzej przeszedlby takze wtedy, gdyby `czyCzolo` bylo puste.
-  // Tutaj liczymy mianownik i sprawdzamy, ze jest niezerowy — a wiec, ze poprzednie zero naprawde
-  // znaczy „brak czesci wspolnej", a nie „brak obszaru".
-  const udzialCzola = udzial(czyCzolo);
-  const udzialSymbolu = udzial(czyWZasieguSymbolu);
-  assert.ok(udzialCzola > 0.05, `obszar liczony wyszedl pusty (${udzialCzola})`);
-  assert.ok(udzialSymbolu > 0.005, `zasieg symbolu wyszedl pusty (${udzialSymbolu})`);
-});
-
-test('symbol nie dotyka sylwetki postaci, wiec nie koliduje z podpowiedzia gestu', () => {
-  // ⛔ WARUNEK MOCNIEJSZY OD POTRZEBNEGO, I DLATEGO PROSTY DO ZMIERZENIA. Podpowiedz gestu rysuje
-  // sie wylacznie na sylwetce (`naCzole = maskaChmurki * ...` w `gpu/obraz.ts`), wiec symbol
-  // rozlaczny z CALA sylwetka jest rozlaczny takze z kazdym polozeniem wedrujacej plamy, ogona
-  // i toru — bez potrzeby powtarzania tu geometrii toru.
+test('symbol nie ma ani jednego punktu wspolnego z sylwetka — ani z licznikiem, ani z podpowiedzia', () => {
+  // ⚠️ JEDEN TEST NA DWA WARUNKI, ODKAD OBSZAR LICZONY = SYLWETKA (2026-08-28). Do tej pory staly
+  // tu dwa osobne przebiegi: jeden po `czyCzolo` (mianownik pokrycia), drugi po `czyChmurka`
+  // (podpowiedz gestu rysuje sie wylacznie na sylwetce, `naCzole = maskaChmurki * ...`
+  // w `gpu/obraz.ts`). Po poszerzeniu obszaru liczonego oba pytaly juz o ten sam ksztalt, wiec
+  // drugi przebieg nie dowodzil niczego ponad pierwszy — zostal jeden.
   const G = 512;
   let wspolne = 0;
   for (let j = 0; j < G; j++) {
@@ -52,7 +30,17 @@ test('symbol nie dotyka sylwetki postaci, wiec nie koliduje z podpowiedzia gestu
       if (czyWZasieguSymbolu(x, y) && czyChmurka(x, y)) wspolne++;
     }
   }
-  assert.equal(wspolne, 0, `symbol nachodzi na sylwetke na ${wspolne} tekselach`);
+  assert.equal(wspolne, 0, `symbol wchodzi w sylwetke na ${wspolne} tekselach — mieszalby w liczniku`);
+});
+
+test('mianownik pokrycia nie wie o symbolu — udzial sylwetki jest ten sam z nim i bez niego', () => {
+  // ⛔ SABOTAZ WLASNEGO KRYTERIUM. Test wyzej przeszedlby takze wtedy, gdyby `czyChmurka` bylo
+  // puste. Tutaj liczymy mianownik i sprawdzamy, ze jest niezerowy — a wiec, ze poprzednie zero
+  // naprawde znaczy „brak czesci wspolnej", a nie „brak obszaru".
+  const udzialObszaru = udzial(czyChmurka);
+  const udzialSymbolu = udzial(czyWZasieguSymbolu);
+  assert.ok(udzialObszaru > 0.05, `obszar liczony wyszedl pusty (${udzialObszaru})`);
+  assert.ok(udzialSymbolu > 0.005, `zasieg symbolu wyszedl pusty (${udzialSymbolu})`);
 });
 
 test('symbol lezy poza wycinkiem bramki blasku', () => {

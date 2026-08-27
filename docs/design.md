@@ -68,14 +68,23 @@ Konsekwencje obowiązujące dalej:
   nimi. ⛔ Gogle z zadania F — soczewki, rant i mostek — **wypadły w całości** na wyraźne życzenie
   użytkownika, który zgłosił, że woli proste ciemne oczy sprzed tamtej zmiany; kształt
   kapsuły został.
-- **Punkty daje tylko krem, który wylądował na czole.** Rozsmarować wolno gdziekolwiek —
-  to dalej świecąca powierzchnia — ale dłoń pracuje **nad** oczami, więc mina zostaje widoczna
-  w trakcie malowania. To jest cały sens poprawki.
-- **Mianownik pokrycia szedł 70,6% maski → 2,38% (czoło chmurki) → 8,55% (czoło kapsuły)**, więc
-  progi bramek trzeba **przeliczać pomiarem, a nie przepisywać** — pomiary przy `PROG_POKRYCIA`
-  w `src/logika/fazy.ts`. Geometria jest dobrana tak, żeby **jednym poziomym pociągnięciem nie
-  dało się domknąć rundy przy żadnym ułożeniu**: zmierzone maksimum to 0,744 przy progu 0,85
-  (test „jeden poziomy przejazd nie domyka progu pokrycia"), a sondą na żywej scenie 0,574.
+- **Punkty daje krem, który wylądował na CAŁEJ sylwetce.** Rozsmarować wolno gdziekolwiek —
+  to dalej świecąca powierzchnia — ale liczy się to, co wylądowało na postaci. ⛔ Między zadaniem
+  C2 a 2026-08-28 liczył się wyłącznie **wąski pas czoła**, żeby dłoń pracowała nad oczami i mina
+  została widoczna. Rozwiązało to zasłanianie i **stworzyło gorszy problem**: gra przestała
+  reagować na gest, który człowiek wykonuje bez instrukcji. Zmierzone sondą na żywej scenie
+  (`scripts/mierz-gesty.mjs`, mianownik = czoło): poziomo przez środek kafla **0,000**, krzyż przez
+  cały kafel 0,126, bazgranie po kaflu **0,711 — progu 0,85 nie dotyka ani razu**, celnie w pas
+  czoła 1,000. Trafiał więc tylko ten, kto **wiedział** o pasie czoła. Dziś obszarem liczonym jest
+  cała sylwetka, a czytelność miny niesie **materiał warstwy** (krycie nigdy nie dochodzi do 1),
+  nie geometria obszaru.
+- **Mianownik pokrycia szedł 70,6% maski → 2,38% (czoło chmurki) → 8,55% (czoło kapsuły) →
+  22,86% (cała kapsuła)**, więc progi bramek trzeba **przeliczać pomiarem, a nie przepisywać** —
+  pomiary przy `PROG_POKRYCIA` w `src/logika/fazy.ts`. Geometria jest dobrana tak, żeby **jednym
+  poziomym pociągnięciem nie dało się domknąć rundy przy żadnym ułożeniu**: zmierzone maksimum to
+  **0,299 przy progu 0,55** (test „jeden poziomy przejazd nie domyka progu pokrycia"), a dwa
+  przejazdy dają 0,576, czyli już domykają. Poszerzenie obszaru **wzmocniło** ten niezmiennik:
+  stosunek „ile daje jeden ruch" do progu spadł z 0,88 na 0,54.
 
 ## 2b. Zagrożenie niesie natężenie, nie odcień
 

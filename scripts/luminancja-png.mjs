@@ -17,7 +17,7 @@ import { inflateSync } from 'node:zlib';
 // ⚠️ LUSTRO `WYCINEK_SZKLA` ze `src/gpu/wspolne.ts`. Zmiana tam wymaga zmiany tutaj — ten skrypt
 // jest przyrzadem po stronie Node'a i nie importuje kodu aplikacji (bo tamten ciagnie za soba
 // WebGPU). ⚠️ Stala `WROG` stad wypadla razem z prostokatem o tej nazwie: mianownikiem pokrycia
-// jest teraz czolo chmurki, a nie prostokat na caly kafel.
+// jest teraz sylwetka chmurki, a nie prostokat na caly kafel.
 /** Wycinek samego swiecacego pola — lustro `WYCINEK_SZKLA`, domyslny prostokat bramki blasku. */
 const SZKLO = { x0: 0.18, x1: 0.82, y0: 0.16, y1: 0.42 };
 

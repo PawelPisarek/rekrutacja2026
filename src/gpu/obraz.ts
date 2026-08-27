@@ -303,21 +303,28 @@ const SILA_RANTU = 0.34;
 
 // --- PODPOWIEDZ GESTU --------------------------------------------------------------------------
 /**
- * ⛔ PODPOWIEDZ WEDRUJE TAM, GDZIE TRZEBA MALOWAC — PO CZOLE CHMURKI, A NIE „GDZIES NA KAFLU".
+ * ⛔ PODPOWIEDZ WEDRUJE PO POSTACI, A NIE „GDZIES NA KAFLU".
  *
- * Punkty daje wylacznie krem, ktory wyladowal na czole (`obszarWroga` w `wspolne.ts`), wiec
+ * Punkty daje wylacznie krem, ktory wyladowal na SYLWETCE (`obszarWroga` w `wspolne.ts`), wiec
  * podpowiedz pokazujaca gest w dowolnym innym miejscu uczylaby ruchu, ktory NIC nie robi —
  * gorzej niz brak podpowiedzi, bo gracz wykonalby go i uznal, ze dodatek nie dziala.
  *
+ * ⚠️ DUCH ZOSTAJE NAD OCZAMI, CHOC PUNKTY DAJE JUZ CALA POSTAC (zmiana 2026-08-28). To nie jest
+ * przeoczenie: podpowiedz oglada WYLACZNIE gracz, ktory jeszcze nic nie namalowal
+ * (`ui/podpowiedz.ts`), wiec jest jedynym obrazkiem, ktory moze zaslonic mu mine, zanim ja
+ * w ogole zobaczy. Prawdziwy krem lezy juz gdzie chce; duch trzyma sie gornej polowy sylwetki
+ * i wygasza sie na `LINIA_CZOLA`. Gest, ktorego uczy — poziome przeciagniecie przez cala
+ * szerokosc postaci — jest ten sam, ktorego wymaga domkniecie rundy.
+ *
  * ⚠️ WSPOLRZEDNE PONIZEJ SA ZMIERZONE, NIE DOBRANE — i PRZELICZONE PO ZMIANIE SYLWETKI NA KAPSULE.
- * Czolo (`czyCzolo` z `logika/chmurka.ts`, siatka 512x512) lezy w prostokacie x 0,116..0,884,
- * y 0,552..0,675 przestrzeni maski, czyli wzgledem srodka postaci y od -0,1682 do `LINIA_CZOLA`
- * = -0,0452. Kapsula jest szersza od poprzedniego ksztaltu i nie zweza sie ku gorze tak ostro:
+ * Pasmo, po ktorym wedruje duch (sylwetka nad `LINIA_CZOLA`, siatka 512x512), lezy w prostokacie
+ * x 0,116..0,884, y 0,552..0,675 przestrzeni maski, czyli wzgledem srodka postaci y od -0,1682 do
+ * `LINIA_CZOLA` = -0,0452. Kapsula jest szersza i nie zweza sie ku gorze tak ostro:
  * polowa szerokosci pasma to 0,2764 przy y = -0,160, 0,3154 przy -0,140, 0,3525 przy -0,106,
  * 0,3740 przy -0,070.
  *
  * ⛔ OBIE OSIE PRZESTROJONE PO RECENZJI (uwaga W4) — WCZESNIEJ NIE ZGADZALA SIE ZADNA.
- * `PODPOWIEDZ_Y` bylo -0,070 z komentarzem „srodek zmierzonego pasma czola", choc srodek pasma
+ * `PODPOWIEDZ_Y` bylo -0,070 z komentarzem „srodek zmierzonego pasma", choc srodek pasma
  * -0,1682..-0,0452 wypada na -0,1067. Skutek bylo widac na zrzucie: plama o promieniu 0,050 na
  * wysokosci -0,070 siegala do -0,020, a `naCzole` wygasza ja juz od `LINIA_CZOLA`, wiec DOLNA
  * POLOWA DUCHA byla scinana i podpowiedz przyklejala sie do dolnej krawedzi zamiast prowadzic
@@ -336,7 +343,7 @@ const PODPOWIEDZ_Y = -0.106;
  * brzeg ducha zatrzymuje sie tuz przed krawedzia sylwetki.
  *
  * ⛔ PODPOWIEDZ MA UCZYC GESTU O DLUGOSCI, JAKIEJ NAPRAWDE WYMAGA DOMKNIECIE RUNDY. Prog pokrycia
- * domykaja dwa przejazdy przez CALA szerokosc czola; duch wedrujacy po 0,13 pokazywal ruch, ktory
+ * domykaja dwa przejazdy przez CALA szerokosc postaci; duch wedrujacy po 0,13 pokazywal ruch, ktory
  * zakrywa srodek pasma i nic wiecej, czyli uczyl za malo. Maska czola i tak miekko przycina to,
  * co wyjdzie poza sylwetke, wiec bledem w te strone jest slabsza podpowiedz, a nie plama wiszaca
  * obok postaci.
@@ -788,8 +795,10 @@ export function stworzObraz(root: TgpuRoot, widokMaski: WidokMaski) {
     ));
     const wPasie = d.f32(1)
       - std.smoothstep(d.f32(PODPOWIEDZ_PROMIEN * 0.45), d.f32(PODPOWIEDZ_PROMIEN * 0.95), doToru);
-    // ⛔ MASKA CZOLA, NIE CALEGO KAFLA: sylwetka chmurki razy zanik przy linii oczu. Bez niej duch
-    // wyjechalby na swiecaca powierzchnie, czyli pokazywalby gest tam, gdzie nie daje on punktow.
+    // ⛔ MASKA GORNEJ POLOWY POSTACI, NIE CALEGO KAFLA: sylwetka chmurki razy zanik przy linii
+    // oczu. Bez sylwetki duch wyjechalby na swiecaca powierzchnie, czyli pokazywalby gest tam,
+    // gdzie nie daje on punktow; bez zaniku polozylby sie na oczach i ustach, czyli zaslonilby
+    // mine dokladnie temu graczowi, ktory jej jeszcze nie widzial.
     const naCzole = maskaChmurki
       * (d.f32(1) - std.smoothstep(d.f32(LINIA_CZOLA), d.f32(LINIA_CZOLA + PODPOWIEDZ_ZANIK), pc.y));
     const duch = silaPodpowiedzi * naCzole;

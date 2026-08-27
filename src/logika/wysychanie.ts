@@ -35,10 +35,19 @@ export function krokWysychania(
  * dwukrotnie. `prog` NIE jest tempem, tylko granica, ponizej ktorej warstwa znika — zostaje.
  *
  * Zmierzone przyrzadem `scripts/mierz-schniecie.mjs` na zywej scenie, jedno nalozenie kremu
- * i zero domalowywania (czas do wyzerowania pokrycia czola):
+ * i zero domalowywania (czas do wyzerowania pokrycia):
  *
- *   stale 0,14 / 0,22  →  polowa pokrycia po 2,0 s, zero po 4,7 s
- *   stale 0,07 / 0,11  →  polowa pokrycia po 4,2 s, zero po 8,9 s
+ *   stale 0,14 / 0,22  →  polowa pokrycia po 2,0 s, zero po 4,7 s   (mianownik: czolo)
+ *   stale 0,07 / 0,11  →  polowa pokrycia po 4,2 s, zero po 8,9 s   (mianownik: czolo)
+ *   stale 0,07 / 0,11  →  polowa pokrycia po 4,1 s, zero po 8,8 s   (mianownik: CALA SYLWETKA,
+ *                                                                    powtorzone 2026-08-28)
+ *
+ * ⛔ TO WYSYCHANIE, A NIE PROG, NIESIE „FILTR TRZEBA REAPLIKOWAC". Zadanie „maksymalna
+ * wybaczliwosc" obnizylo `PROG_POKRYCIA` do 0,55 i poszerzylo obszar liczony — wiec komunikat
+ * produktowy musial przestac zalezec od tego, czy gracz trafi. Zalezy od zegara: z pelnego
+ * nalozenia pokrycie schodzi PONIZEJ 0,55 po okolo 3,9 s (zmierzone w tej samej serii: 0,570
+ * w 3,93 s, 0,503 w 4,03 s). Gracz, ktory chce zostac nad progiem dluzej, musi wrocic i domalowac
+ * — bo warstwa schodzi, a nie dlatego, ze nie trafil.
  *
  * ⛔ OKNO BRAMKI „pokrycie SPADA" JEDZIE ZA TA LICZBA. Asercja 2 z `docs/plan-wdrozenia.md`
  * (zadanie B, krok 6) czekala 6 s, bo warstwa schodzila w 4,7 s. Przy nowych stalych warstwa

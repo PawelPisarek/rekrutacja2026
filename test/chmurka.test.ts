@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  czyChmurka, czyCzolo, LINIA_CZOLA, OKO, POLOWA_KAPSULY, PROMIEN_KAPSULY, ramka,
-  sdfChmurki, SPOD, SRODEK_CHMURKI, udzial, USTA,
+  czyChmurka, LINIA_CZOLA, OKO, POLOWA_KAPSULY, PROMIEN_KAPSULY, ramka,
+  sdfChmurki, SPOD, udzial, USTA,
 } from '../src/logika/chmurka.ts';
 import { odlegloscOdOdcinka } from '../src/logika/odcinek.ts';
 import { PROMIEN_PEDZLA, promienSkuteczny, sladPedzla } from '../src/logika/pedzel.ts';
@@ -127,16 +127,25 @@ test('spod jest plaski, bo jest odciety — a nie ustawiony ksztaltem', () => {
   assert.ok(Math.abs(Math.max(...wysokosci) - SPOD) < 0.01, 'spod ma lezec na linii ciecia SPOD');
 });
 
-test('linia czola lezy NAD oczami, wiec palec nie zaslania miny', () => {
+test('linia zaniku podpowiedzi lezy NAD oczami, wiec duch gestu nie zaslania miny', () => {
+  // ⚠️ TEN TEST ZMIENIL PRZEDMIOT, A NIE TYLKO NAZWE. Do 2026-08-28 `LINIA_CZOLA` byla granica
+  // OBSZARU LICZONEGO i test pytal, czy oko nie jest „czolem". Obszarem liczonym jest dzis cala
+  // sylwetka (`czyChmurka`), a linia zostala przy jednej robocie: ponizej niej wygasza sie DUCH
+  // PODPOWIEDZI (`naCzole` w `gpu/obraz.ts`). Warunek jest ten sam co przedtem — linia nad gorna
+  // krawedzia oka — ale broni juz czego innego: tego, ze podpowiedz pokazywana graczowi, ktory
+  // jeszcze nic nie namalowal, nie klada mu sie na oczach i ustach.
   const gornaKrawedzOka = OKO.y - OKO.r;
   assert.ok(
     LINIA_CZOLA < gornaKrawedzOka,
     `LINIA_CZOLA ${LINIA_CZOLA} musi lezec nad gorna krawedzia oka ${gornaKrawedzOka}`,
   );
-  assert.equal(czyCzolo(SRODEK_CHMURKI.x + OKO.x, SRODEK_CHMURKI.y + OKO.y), false, 'oko nie jest czolem');
-  assert.equal(czyCzolo(SRODEK_CHMURKI.x - OKO.x, SRODEK_CHMURKI.y + OKO.y), false, 'oko nie jest czolem');
-  assert.equal(czyCzolo(SRODEK_CHMURKI.x, SRODEK_CHMURKI.y + USTA.y), false, 'usta nie sa czolem');
-  assert.equal(czyCzolo(SRODEK_CHMURKI.x, SRODEK_CHMURKI.y - 0.09), true, 'srodek czola jest czolem');
+  assert.ok(LINIA_CZOLA < USTA.y, 'linia zaniku podpowiedzi musi lezec nad ustami');
+  // Duch ma miec gdzie sie zmiescic: pasmo od gornej krawedzi sylwetki do linii zaniku nie moze
+  // byc puste, inaczej podpowiedz byla by wygaszona w calosci i test wyzej nie mowilby nic.
+  assert.ok(
+    -PROMIEN_KAPSULY < LINIA_CZOLA,
+    'nad linia zaniku nie ma ani kawalka sylwetki — duch podpowiedzi nie mialby sie gdzie narysowac',
+  );
 });
 
 test('cala twarz miesci sie pod linia czola, nad spodem i w obrebie kapsuly', () => {
@@ -145,17 +154,20 @@ test('cala twarz miesci sie pod linia czola, nad spodem i w obrebie kapsuly', ()
   assert.ok(OKO.x + OKO.r < POLOWA_KAPSULY, 'oczy wychodza poza plaska czesc kapsuly');
 });
 
-test('czolo jest WYZSZE od srednicy pedzla — inaczej jedno przeciagniecie domyka prog', () => {
+test('obszar liczony jest WYZSZY od srednicy pedzla — inaczej jedno przeciagniecie domyka prog', () => {
   // ⛔ OBIE STRONY NIEROWNOSCI POCHODZA Z KODU. Do rundy naprawczej po recenzji zadania F stal tu
   // RECZNY LITERAL `0.110`, a `PROMIEN_PEDZLA` byl prywatna stala `gpu/scena.ts` — podniesienie
   // promienia nie ruszyloby tej asercji ani o milimetr, choc raport twierdzil, ze ja zlapie
   // (uwaga W1). Dzis srednica liczy sie z importowanej stalej.
-  const r = ramka(czyCzolo);
-  const wysokoscCzola = r.y1 - r.y0;
+  //
+  // ⚠️ OBSZAREM LICZONYM JEST CALA SYLWETKA, wiec zapas urosl z 0,016 do 0,206. To jest warunek
+  // KONIECZNY, nie wystarczajacy — wlasnosc „jeden przejazd nie domyka rundy" mierzy test nizej.
+  const r = ramka(czyChmurka);
+  const wysokoscObszaru = r.y1 - r.y0;
   const srednicaPedzla = PROMIEN_PEDZLA * 2;
   assert.ok(
-    wysokoscCzola > srednicaPedzla,
-    `pas czola ma wysokosc ${wysokoscCzola}, a srednica pedzla to ${srednicaPedzla}`,
+    wysokoscObszaru > srednicaPedzla,
+    `obszar liczony ma wysokosc ${wysokoscObszaru}, a srednica pedzla to ${srednicaPedzla}`,
   );
 });
 
@@ -163,33 +175,41 @@ test('czolo jest WYZSZE od srednicy pedzla — inaczej jedno przeciagniecie domy
  * ⛔ TO JEST TEST, KTORY MIERZY WLASNOSC ZADEKLAROWANA W `logika/fazy.ts`, A NIE SLABSZA OD NIEJ.
  *
  * `fazy.ts` deklaruje: „jeden przejazd NIE domyka rundy, i to jest wlasnosc GEOMETRII". Test
- * powyzej („pasmo wyzsze od srednicy pedzla") tego NIE dowodzi — wyklucza jedynie pokrycie 100%,
- * a prog wynosi 0,85. Recenzja (uwaga W2) policzyla, ze przy zapasie 0,126 − 0,110 = 0,016 jeden
- * przejazd ulozony przy dolnej krawedzi pasma moglby dojsc do ~0,90, czyli POWYZEJ progu — i taka
- * geometrie stary test by przepuscil.
+ * powyzej („obszar wyzszy od srednicy pedzla") tego NIE dowodzi — wyklucza jedynie pokrycie 100%,
+ * a prog wynosi 0,55. Recenzja zadania F (uwaga W2) policzyla, ze przy poprzednim, waskim obszarze
+ * jeden przejazd ulozony przy dolnej krawedzi pasma mogl dojsc do ~0,90 — i taka geometrie stary
+ * test by przepuscil.
  *
- * Tutaj mierzy sie dokladnie te wielkosc, o ktorej mowi deklaracja: NAJWIEKSZY udzial czola, jaki
- * da sie zakryc JEDNYM poziomym pociagnieciem. Przebieg jest po wszystkich wysokosciach ulozenia
- * (krok = teksel maski), wiec bierze sie przypadek NAJKORZYSTNIEJSZY dla gracza, a nie jeden
- * wybrany. Wszystko po stronie prawej pochodzi z kodu: profil pedzla z `logika/pedzel.ts`, prog
- * teksela z `gpu/wspolne.ts`, prog rundy z `logika/fazy.ts`.
+ * Tutaj mierzy sie dokladnie te wielkosc, o ktorej mowi deklaracja: NAJWIEKSZY udzial obszaru
+ * liczonego, jaki da sie zakryc JEDNYM poziomym pociagnieciem. Przebieg jest po wszystkich
+ * wysokosciach ulozenia (krok = teksel maski), wiec bierze sie przypadek NAJKORZYSTNIEJSZY dla
+ * gracza, a nie jeden wybrany. Wszystko po stronie prawej pochodzi z kodu: profil pedzla
+ * z `logika/pedzel.ts`, prog teksela z `gpu/wspolne.ts`, prog rundy z `logika/fazy.ts`.
+ *
+ * ⛔ NIEZMIENNIK ROZSTRZYGNIETY SWIADOMIE 2026-08-28, A NIE ODZIEDZICZONY. Zadanie „maksymalna
+ * wybaczliwosc" kazalo poszerzyc obszar liczony i obnizyc prog, wiec ten test musial dostac
+ * odpowiedz, czy „trzeba rozsmarowac wiecej niz raz" nadal jest prawda. JEST, i to z wiekszym
+ * zapasem niz przedtem: obszar urosl 2,67 raza (0,0855 → 0,2286 maski), wiec jeden przejazd
+ * spadl z 0,744 na 0,299, a prog spadl tylko z 0,85 na 0,55. Stosunek „ile daje jeden ruch"
+ * do progu poprawil sie z 0,88 na 0,54. Nie ma wiec czego naciagac ani usuwac — geometria sama
+ * wymaga drugiego ruchu, a wybaczliwosc nie kosztowala tego niezmiennika nic.
  *
  * ⚠️ CZEGO TEN TEST NIE OBEJMUJE: pociagniec innych niz poziome (lukowatych, po skosie) i sumy
- * dwoch pociagniec zlozonych w jedno ciagle „machniecie". Poziome jest tym, ktore czolo-pas
+ * dwoch pociagniec zlozonych w jedno ciagle „machniecie". Poziome jest tym, ktore lezaca kapsule
  * zakrywa najefektywniej, a nakladanie sie kolejnych ruchow to juz drugi przejazd.
  */
 test('jeden poziomy przejazd nie domyka progu pokrycia — przy ZADNYM ulozeniu', () => {
-  const czoloTekseli: { x: number; y: number }[] = [];
+  const tekseleObszaru: { x: number; y: number }[] = [];
   for (let j = 0; j < MASKA_ROZMIAR; j++) {
     const y = (j + 0.5) / MASKA_ROZMIAR;
     for (let i = 0; i < MASKA_ROZMIAR; i++) {
       const x = (i + 0.5) / MASKA_ROZMIAR;
-      if (czyCzolo(x, y)) czoloTekseli.push({ x, y });
+      if (czyChmurka(x, y)) tekseleObszaru.push({ x, y });
     }
   }
-  assert.ok(czoloTekseli.length > 0, 'zalozenie testu: czolo musi miec jakiekolwiek teksele');
+  assert.ok(tekseleObszaru.length > 0, 'zalozenie testu: obszar liczony musi miec jakiekolwiek teksele');
 
-  const r = ramka(czyCzolo);
+  const r = ramka(czyChmurka);
   // Zakres wysokosci ulozenia: caly pas plus promien pedzla po obu stronach, zeby zmiescily sie
   // takze ulozenia, przy ktorych smuga wystaje poza pasmo. Krok = teksel maski.
   const odY = r.y0 - PROMIEN_PEDZLA;
@@ -199,12 +219,12 @@ test('jeden poziomy przejazd nie domyka progu pokrycia — przy ZADNYM ulozeniu'
   for (let k = 0; odY + k / MASKA_ROZMIAR <= doY; k++) {
     const y = odY + k / MASKA_ROZMIAR;
     let pokryte = 0;
-    for (const teksel of czoloTekseli) {
+    for (const teksel of tekseleObszaru) {
       // Pociagniecie przez CALA szerokosc kafla z zapasem — konce odcinka nie ograniczaja niczego.
       const odl = odlegloscOdOdcinka(teksel.x, teksel.y, -1, y, 2, y);
       if (sladPedzla(odl) > PROG_TEKSELA) pokryte++;
     }
-    const udzialPokryty = pokryte / czoloTekseli.length;
+    const udzialPokryty = pokryte / tekseleObszaru.length;
     if (udzialPokryty > najlepsze) {
       najlepsze = udzialPokryty;
       najlepszaWysokosc = y;
@@ -213,8 +233,75 @@ test('jeden poziomy przejazd nie domyka progu pokrycia — przy ZADNYM ulozeniu'
 
   assert.ok(
     najlepsze < PROG_POKRYCIA,
-    `najkorzystniejszy jeden przejazd zakrywa ${najlepsze} czola (na wysokosci ${najlepszaWysokosc}), `
+    `najkorzystniejszy jeden przejazd zakrywa ${najlepsze} obszaru liczonego `
+    + `(na wysokosci ${najlepszaWysokosc}), `
     + `a prog rundy to ${PROG_POKRYCIA} — jeden ruch domykalby faze`,
+  );
+});
+
+/**
+ * ⛔ TEN TEST TRZYMA DECYZJE O WYBACZLIWOSCI, A NIE SAMA LICZBE.
+ *
+ * `PROG_POKRYCIA` jest wynikiem pomiaru gestow (`scripts/mierz-gesty.mjs`), ale sam pomiar zyje
+ * w komentarzu i w raporcie — nic go nie pilnuje. Pilnuje go ta nierownosc, bo obie jej strony
+ * licza sie TU I TERAZ z geometrii, ktora jest w kodzie:
+ *
+ *   jeden przejazd  <  PROG_POKRYCIA  <=  dwa przejazdy
+ *
+ * Lewa strona to „jeden ruch nie domyka rundy" (komunikat produktowy: filtr trzeba reaplikowac).
+ * Prawa to „dwa ruchy juz wystarcza" — czyli wybaczliwosc: gracz, ktory po prostu rozsmarowuje
+ * krem po postaci, domyka runde, zamiast szukac ukrytego pasa. Podniesienie progu powyzej dwoch
+ * przejazdow albo zwezenie obszaru liczonego przewraca ten test — i o to chodzi.
+ *
+ * ⚠️ DRUGI PRZEJAZD DOBIERANY ZACHLANNIE, a nie przez przeszukanie wszystkich par: zachlanny
+ * wynik jest DOLNYM oszacowaniem najlepszej pary (zmierzone: 0,576 zachlannie wobec 0,586 przy
+ * pelnym przeszukaniu), a nierownosc idzie w strone, w ktora oszacowanie od dolu jest ostrzejsze.
+ */
+test('prog rundy lezy MIEDZY jednym przejazdem a dwoma — obie liczby policzone z geometrii', () => {
+  const teksele: { x: number; y: number }[] = [];
+  for (let j = 0; j < MASKA_ROZMIAR; j++) {
+    const y = (j + 0.5) / MASKA_ROZMIAR;
+    for (let i = 0; i < MASKA_ROZMIAR; i++) {
+      const x = (i + 0.5) / MASKA_ROZMIAR;
+      if (czyChmurka(x, y)) teksele.push({ x, y });
+    }
+  }
+  const r = ramka(czyChmurka);
+  const odY = r.y0 - PROMIEN_PEDZLA;
+  const doY = r.y1 + PROMIEN_PEDZLA;
+  // Krok czterech tekseli — pociagniecia lezace blizej siebie niz to nie roznia sie mierzalnie,
+  // a pelny krok tekselowy podwaja czas testu bez zmiany wyniku na trzecim miejscu po przecinku.
+  const KROK = 4 / MASKA_ROZMIAR;
+
+  const trafia = (teksel: { x: number; y: number }, y: number): boolean =>
+    sladPedzla(odlegloscOdOdcinka(teksel.x, teksel.y, -1, y, 2, y)) > PROG_TEKSELA;
+
+  let jeden = 0;
+  let pierwsza = odY;
+  for (let y = odY; y <= doY; y += KROK) {
+    let ile = 0;
+    for (const teksel of teksele) if (trafia(teksel, y)) ile++;
+    if (ile / teksele.length > jeden) {
+      jeden = ile / teksele.length;
+      pierwsza = y;
+    }
+  }
+  const pokryteJednym = teksele.map((teksel) => trafia(teksel, pierwsza));
+  let dwa = jeden;
+  for (let y = odY; y <= doY; y += KROK) {
+    let ile = 0;
+    for (let i = 0; i < teksele.length; i++) if (pokryteJednym[i] || trafia(teksele[i]!, y)) ile++;
+    if (ile / teksele.length > dwa) dwa = ile / teksele.length;
+  }
+
+  assert.ok(
+    jeden < PROG_POKRYCIA,
+    `jeden przejazd zakrywa ${jeden} obszaru, a prog rundy to ${PROG_POKRYCIA} — jeden ruch domykalby runde`,
+  );
+  assert.ok(
+    dwa >= PROG_POKRYCIA,
+    `dwa przejazdy zakrywaja tylko ${dwa} obszaru, a prog rundy to ${PROG_POKRYCIA} `
+    + '— gra wymaga wiecej niz dwoch ruchow, czyli jest mniej wybaczliwa, niz deklaruje',
   );
 });
 
@@ -234,16 +321,16 @@ test('promien SKUTECZNY pedzla jest mniejszy od nominalnego, bo brzeg odcisku je
   );
 });
 
-test('mianownik pokrycia — udzial czola w masce — jest znany co do liczby', () => {
-  const udzialCzola = udzial(czyCzolo);
-  // ⚠️ TO JEST MIANOWNIK, WZGLEDEM KTOREGO LICZY SIE `PROG_POKRYCIA`. Przed zadaniem C2 byl nim
-  // prostokat 0,08..0,92 na obu osiach (70,6% maski), potem czolo starej sylwetki (2,38%), a po
-  // zamianie ksztaltu na kapsule — czolo kapsuly. Kazda zmiana geometrii przesuwa te liczbe, wiec
-  // prog trzeba PRZELICZYC POMIAREM, a nie przepisac; ten test jest miejscem, w ktorym zmiana daje
-  // o sobie znac. Zmierzone 2026-08-27: 0,0855.
+test('mianownik pokrycia — udzial sylwetki w masce — jest znany co do liczby', () => {
+  const udzialObszaru = udzial(czyChmurka);
+  // ⚠️ TO JEST MIANOWNIK, WZGLEDEM KTOREGO LICZY SIE `PROG_POKRYCIA`. Zmienial sie juz trzy razy:
+  // prostokat 0,08..0,92 na obu osiach (70,6% maski), czolo starej sylwetki (2,38%), czolo kapsuly
+  // (8,55%) i — od 2026-08-28 — CALA kapsula. Kazda taka zmiana przesuwa prog, wiec prog trzeba
+  // PRZELICZYC POMIAREM (`scripts/mierz-gesty.mjs`), a nie przepisac; ten test jest miejscem,
+  // w ktorym zmiana daje o sobie znac. Zmierzone 2026-08-28: 0,2286.
   assert.ok(
-    udzialCzola > 0.081 && udzialCzola < 0.091,
-    `udzial czola w masce wyszedl ${udzialCzola}, a prog pokrycia byl mierzony przy 0,0855`,
+    udzialObszaru > 0.224 && udzialObszaru < 0.234,
+    `udzial sylwetki w masce wyszedl ${udzialObszaru}, a prog pokrycia byl mierzony przy 0,2286`,
   );
 });
 

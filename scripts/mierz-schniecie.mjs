@@ -8,7 +8,7 @@
 // dla poprzednich `STALE_WYSYCHANIA`.
 //
 // ⚠️ FAZA JEST PRZYPIETA (`ustawFaze(0)`), CO ZATRZYMUJE MASZYNE FAZ. Bez tego pomiar w trybie
-// `czolo` (pokrycie dochodzi do 1,0) przelaczylby sie po sekundzie w `dzien-karta`, a po trzech
+// `postac` (pokrycie dochodzi do 1,0) przelaczylby sie po chwili w `dzien-karta`, a po dwoch
 // dalszych w `zachod`, ktory CZYSCI maske — i „spadek pokrycia do zera" bylby wyczyszczeniem
 // sceny, nie wysychaniem. Wysychanie jedzie z `dt` petli klatki, wiec przypiecie fazy go nie tyka.
 //
@@ -16,7 +16,7 @@
 // ma, wiec miary pekania (liczba przejsc „warstwa ↔ goly ekran", najwiekszy skok miedzy sasiednimi
 // tekselami) mierzylyby pusty ekran i wychodzilyby zerowe niezaleznie od tego, czy krem pekal.
 //
-// Uzycie: node scripts/mierz-schniecie.mjs [--url <adres> | --podglad] [--tryb skos|czolo] [--limit <ms>]
+// Uzycie: node scripts/mierz-schniecie.mjs [--url <adres> | --podglad] [--tryb skos|postac] [--limit <ms>]
 // Kody wyjscia: 0 = pomiar wykonany, 2 = blad pomiaru.
 
 import { execFile } from 'node:child_process';
@@ -35,8 +35,12 @@ function argument(nazwa, domyslna) {
 const url = process.argv.includes('--podglad') ? adresPodgladu() : argument('--url', adresDev());
 /**
  * `skos` — DOKLADNIE to pociagniecie, ktorego uzywa asercja 2 z planu wdrozenia (przekatna przez
- * kadr, przecinajaca czolo waskim pasmem). `czolo` — dwa przejazdy w poprzek czola, czyli ruch
- * gracza domykajacy runde; pokrycie startuje wtedy z 1,0, wiec krzywa jest dluzsza.
+ * kadr, przecinajaca postac waskim pasmem). `postac` — piec przejazdow w poprzek calej sylwetki,
+ * czyli ruch gracza domykajacy runde; pokrycie startuje wtedy blisko 1,0, wiec krzywa jest dluzsza.
+ *
+ * ⚠️ TRYB `czolo` ZNIKNAL RAZEM Z MIANOWNIKIEM. Dwa przejazdy przez pas czola daja dzis 0,414
+ * pokrycia, a nie 1,0 — krzywa schniecia zaczynalaby sie od polowy i nie mowilaby nic o tym,
+ * jak dlugo trzyma sie PELNA warstwa.
  */
 const tryb = argument('--tryb', 'skos');
 const limit = Number(argument('--limit', '30000'));
@@ -46,15 +50,16 @@ const OKRES_PROBKI = 100;
 
 const POCIAGNIECIA = {
   skos: '[[0.25, 0.2, 0.75, 0.8, 20]]',
-  // Te same wspolrzedne, co w `scripts/bramka-fazy.mjs` — czolo kapsuly, x 0,114..0,886.
-  czolo: '[[0.12, 0.585, 0.88, 0.585, 30], [0.12, 0.645, 0.88, 0.645, 30]]',
+  // Te same wspolrzedne, co w `scripts/bramka-fazy.mjs` — cala sylwetka, x 0,110..0,890,
+  // y 0,552..0,868.
+  postac: '[[0.12, 0.58, 0.88, 0.58, 30], [0.88, 0.64, 0.12, 0.64, 30], [0.12, 0.70, 0.88, 0.70, 30], [0.88, 0.76, 0.12, 0.76, 30], [0.12, 0.82, 0.88, 0.82, 30]]',
 };
 const OSIE = {
   skos: '[0.25, 0.2, 0.75, 0.8]',
-  czolo: '[0.12, 0.585, 0.88, 0.585]',
+  postac: '[0.12, 0.70, 0.88, 0.70]',
 };
 if (!POCIAGNIECIA[tryb]) {
-  console.error(`--tryb ma byc "skos" albo "czolo", jest "${tryb}"`);
+  console.error(`--tryb ma byc "skos" albo "postac", jest "${tryb}"`);
   process.exit(2);
 }
 

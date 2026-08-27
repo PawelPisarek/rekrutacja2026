@@ -1,8 +1,8 @@
 /**
  * ⛔ KSZTALT SYLWETKI JEST JEDNA DEFINICJA NA CALY PROJEKT.
  *
- * Maskotka przestala byc ozdoba posrodku kafla i jest CELEM ZABAWY: licznik pokrycia liczy po jej
- * CZOLE, a fragment rysuje dokladnie ten sam ksztalt. Gdyby ksztalt istnial w dwoch kopiach,
+ * Maskotka przestala byc ozdoba posrodku kafla i jest CELEM ZABAWY: licznik pokrycia liczy po
+ * CALEJ JEJ SYLWETCE, a fragment rysuje dokladnie ten sam ksztalt. Gdyby ksztalt istnial w dwoch kopiach,
  * objaw — „licznik rosnie tam, gdzie nic nie widac" — szukaloby sie w shaderze. Dlatego liczby
  * mieszkaja TUTAJ i sa importowane przez `src/gpu/wspolne.ts` (wersja GPU). To ten sam uklad,
  * co `odcinek.ts` / `mapowanie.ts` / `wysychanie.ts`: wersja CPU jest zrodlem prawdy, bo da sie
@@ -31,10 +31,11 @@
  *
  * ⚠️ WYMIARY SA WNIOSKIEM Z TRZECH OGRANICZEN NARAZ, a nie dobrane na oko:
  *  1. sylwetka ma byc WYRAZNIE szersza niz wyzsza (kapsula lezaca, nie pionowa pigulka);
- *  2. CZOLO — pas nad oczami, czyli caly obszar liczony — musi byc WYZSZE od srednicy pedzla
- *     (`PROMIEN_PEDZLA` z `logika/pedzel.ts`), inaczej jedno przeciagniecie zakrywa je w calosci
- *     i prog pokrycia robi sie darmowy. Stad `PROMIEN_KAPSULY + LINIA_CZOLA` = 0,126;
- *  3. ponizej `LINIA_CZOLA` musi sie zmiescic cala twarz: oczy i usta.
+ *  2. OBSZAR LICZONY — czyli cala sylwetka — musi byc WYZSZY od srednicy pedzla (`PROMIEN_PEDZLA`
+ *     z `logika/pedzel.ts`), inaczej jedno przeciagniecie zakrywa go w calosci i prog pokrycia
+ *     robi sie darmowy. Zapas jest dzis ogromny: wysokosc sylwetki 0,316 wobec srednicy 0,110,
+ *     a najkorzystniejszy pojedynczy przejazd zakrywa 0,299 obszaru (zmierzone, `chmurka.test.ts`);
+ *  3. pod `LINIA_CZOLA` musi sie zmiescic cala twarz: oczy i usta.
  * Suma 2 i 3 ustala wysokosc, a warunek 1 — szerokosc.
  */
 /** Polowa dlugosci odcinka, na ktorym rozpieta jest kapsula (jej plaska czesc). */
@@ -66,22 +67,21 @@ export const ZLACZENIE_SPODU = 0.008;
 export const SRODEK_CHMURKI = { x: 0.5, y: 0.72 } as const;
 
 /**
- * ⛔ OBSZAR SKUTECZNY TO CZOLO, CZYLI TO, CO LEZY NAD OCZAMI.
+ * ⛔ TO NIE JEST JUZ MIANOWNIK POKRYCIA — TO GRANICA, NA KTOREJ GASNIE PODPOWIEDZ GESTU.
  *
- * Bez tego gracz malowal po calym kaflu, a wiec i po twarzy maskotki — dlon zaslaniala dokladnie
- * te rzecz, ktora jest nagroda za malowanie (uzytkownik zglosil, ze malujac palcem, przestaje
- * widziec maskotke).
- * Gdy liczy sie wylacznie czolo, palec pracuje NAD twarza i mina zostaje widoczna w trakcie.
+ * Do 2026-08-28 obszarem liczonym byl pas nad ta linia. Zawezenie zalatwilo zaslanianie miny
+ * dlonia i za te cene ZABRALO grze reakcje na naturalny gest: gracz mazacy po kaflu dochodzil do
+ * 0,72 pokrycia i nigdy nie domykal rundy, bo nie wiedzial o waskim pasie czola (pomiar
+ * w `gpu/wspolne.ts`, przyrzad `scripts/mierz-gesty.mjs`). Dzis liczy sie CALA sylwetka
+ * (`czyChmurka`), a krem wolno rozsmarowac gdziekolwiek.
+ *
+ * Linia zostaje, bo dalej ma jedna robote: ponizej niej wygasza sie DUCH PODPOWIEDZI
+ * (`naCzole` w `gpu/obraz.ts`). Dzieki temu podpowiedz — czyli obrazek pokazywany komus, kto
+ * jeszcze nic nie namalowal — nie kladzie sie na oczach i ustach, a wiec uczy gestu, nie zaslaniajac
+ * tego, po co ten gest sie wykonuje. Prawdziwy krem gracza lezy juz gdzie chce.
  *
  * Wartosc jest wspolrzedna Y wzgledem srodka postaci: mniejsza (wyzej) = czolo. Musi lezec nad
- * gorna krawedzia oka (`OKO.y - OKO.r` = 0,006), inaczej celem znowu staje sie twarz — pilnuje
- * tego test.
- *
- * ⛔ TA LICZBA NIE IDZIE ZA OCZAMI, BO JEST MIANOWNIKIEM POKRYCIA. Gogle wypadly (uzytkownik
- * wolal poprzednie oczy) i twarz zajmuje dzis mniej miejsca, wiec warunek „nad okiem" ma teraz
- * 0,050 zapasu zamiast 0,008. Obnizenie `LINIA_CZOLA` do samych oczu powiekszyloby obszar liczony
- * i uniewaznilo `PROG_POKRYCIA`, ktory byl mierzony przy udziale czola 8,55% maski. Zapas jest
- * wiec CENA za to, ze prog zostaje zmierzony — a nie niedopatrzeniem.
+ * gorna krawedzia oka (`OKO.y - OKO.r` = 0,006) — pilnuje tego test.
  */
 export const LINIA_CZOLA = -0.044;
 
@@ -133,20 +133,21 @@ export function sdfChmurki(x: number, y: number): number {
   return przetnijGladko(kapsula, y - SPOD, ZLACZENIE_SPODU);
 }
 
-/** 1 wewnatrz czola postaci, 0 poza. Wspolrzedne w przestrzeni MASKI (0..1), nie wzgledem srodka. */
-export function czyCzolo(x: number, y: number): boolean {
-  const py = y - SRODEK_CHMURKI.y;
-  return py <= LINIA_CZOLA && sdfChmurki(x - SRODEK_CHMURKI.x, py) <= 0;
-}
-
-/** 1 wewnatrz calej sylwetki. Wspolrzedne w przestrzeni MASKI. */
+/**
+ * 1 wewnatrz calej sylwetki, 0 poza. Wspolrzedne w przestrzeni MASKI (0..1), nie wzgledem srodka.
+ *
+ * ⛔ TO JEST OBSZAR LICZONY — mianownik pokrycia, lustro `obszarWroga` z `gpu/wspolne.ts`.
+ * JEDNA nazwa na jeden ksztalt: druga funkcja o roli „obszar liczony" byloby zaproszeniem do
+ * rozjazdu z rysowaniem, przed ktorym broni sie caly ten plik. Poprzednik (`czyCzolo`, pas nad
+ * `LINIA_CZOLA`) wypadl razem z zawezeniem obszaru — powod w komentarzu przy `LINIA_CZOLA`.
+ */
 export function czyChmurka(x: number, y: number): boolean {
   return sdfChmurki(x - SRODEK_CHMURKI.x, y - SRODEK_CHMURKI.y) <= 0;
 }
 
 /**
  * Prostokat obejmujacy punkty, dla ktorych `nalezy` zwraca prawde. LICZONY, nie wpisany —
- * ramka sylwetki i ramka czola sa wnioskiem z geometrii, a nie druga jej kopia.
+ * ramka sylwetki jest wnioskiem z geometrii, a nie druga jej kopia.
  */
 export function ramka(
   nalezy: (x: number, y: number) => boolean,

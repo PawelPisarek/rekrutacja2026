@@ -1,5 +1,5 @@
 /**
- * PODPOWIEDZ GESTU — „duchowe musniecie palcem" nad czolem chmurki.
+ * PODPOWIEDZ GESTU — „duchowe musniecie palcem" po gornej polowie maskotki.
  *
  * ⛔ POKAZUJE SIE WYLACZNIE GRACZOWI, KTORY JESZCZE NIC NIE NAMALOWAL. Kto raz zrozumial gest,
  * nie potrzebuje przypomnienia, a podpowiedz wracajaca po kazdej dluzszej przerwie przestaje
@@ -12,7 +12,7 @@
  * wyczyszczeniu maski przy wejsciu w noc albo po „zagraj jeszcze raz".
  *
  * ⚠️ RYSUJE SIE W SHADERZE, NIE W DOM-ie. Podpowiedz ma wskazywac miejsce, w ktorym naprawde
- * trzeba malowac — czolo chmurki — a to miejsce zna wylacznie scena. Nakladka HTML musialaby
+ * trzeba malowac — sylwetke maskotki — a to miejsce zna wylacznie scena. Nakladka HTML musialaby
  * powtorzyc geometrie sylwetki drugi raz i rozjechalaby sie z nia po cichu. Ten plik ustala
  * WARUNEK, `src/gpu/obraz.ts` rysuje ksztalt, a laczy je pole `podpowiedz` uniformu sceny.
  */

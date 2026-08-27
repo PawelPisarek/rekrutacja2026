@@ -16,11 +16,15 @@ const Liczniki = d.struct({
 /**
  * Licznik pokrycia obszaru chronionego.
  *
- * ⛔ POKRYCIE LICZY SIE PO CZOLE CHMURKI, NIE PO CALYM KAFLU. Krem wolno rozsmarowac gdziekolwiek
- * po swiecacym polu, ale punkty daje wylacznie to, co wyladowalo na gornej powierzchni chmurki.
- * Gdyby licznik zliczal caly kadr, dalo by sie „wygrac" zamalowujac puste rogi — a przy prostokacie
- * na caly kafel (tak bylo do zadania C2) celem malowania byl kafel, wiec gracz zaslanial soba
- * chmurke, czyli dokladnie te rzecz, dla ktorej maluje.
+ * ⛔ POKRYCIE LICZY SIE PO SYLWETCE CHMURKI, NIE PO CALYM KAFLU. Krem wolno rozsmarowac
+ * gdziekolwiek po swiecacym polu, ale punkty daje wylacznie to, co wyladowalo NA POSTACI. Gdyby
+ * licznik zliczal caly kadr, dalo by sie „wygrac" zamalowujac puste rogi — a przy prostokacie na
+ * caly kafel (tak bylo do zadania C2) celem malowania byl kafel, a nie maskotka.
+ *
+ * ⚠️ I ODWROTNIE: obszar ZAWEZONY do pasa czola (tak bylo miedzy C2 a 2026-08-28) uczynil cel
+ * NIEWIDOCZNYM. Gracz mazacy po kaflu dochodzil do 0,72 i nie domykal rundy nigdy, bo nie mial
+ * skad wiedziec o waskim pasie nad oczami. Pomiar obu wariantow: `gpu/wspolne.ts` przy
+ * `obszarWroga`, przyrzad `scripts/mierz-gesty.mjs`.
  */
 export class Pokrycie {
   readonly #liczniki;

@@ -10,13 +10,14 @@ stronę ani awarię (powód niżej).
 
 Kafel wielkości karty produktu (~420 px), wstawiony **w kolumnę tekstu** — nie pełnoekranowa
 scena, która stronę marki zasłania. Nad chmurką świeci rozpalona powierzchnia; chmurka mruży
-ciemne oczy i krzywi się. Rozsmarowujesz po jej czole krem palcem albo myszą: tam, gdzie leży
-warstwa, blask gaśnie, a mina się rozluźnia.
+ciemne oczy i krzywi się. Rozsmarowujesz po niej krem palcem albo myszą: tam, gdzie leży
+warstwa, blask gaśnie, a mina się rozluźnia. Liczy się **cała sylwetka** — smarujesz postać, nie
+szukasz ukrytego celu.
 
 Krem **wysycha i pęka** w nierówne płatki, więc ochrona nie jest jednorazowa — trzeba domalowywać.
 To jest cały hak: „filtr trzeba nakładać ponownie” jest tu mechaniką, a nie hasłem.
 
-Nikt nie mówi Ci tego napisem: kto przez chwilę nic nie zrobi, zobaczy nad czołem chmurki
+Nikt nie mówi Ci tego napisem: kto przez chwilę nic nie zrobi, zobaczy na górnej połowie chmurki
 **duchowe muśnięcie palcem** wędrujące tam i z powrotem — pokazuje gest dokładnie w tym miejscu,
 w którym malowanie w ogóle się liczy. Znika przy pierwszym pociągnięciu i nie wraca już nigdy,
 bo przerwa jest tu **częścią mechaniki** (krem schnie sam, więc czekanie bywa świadome) i
@@ -107,7 +108,7 @@ bez Puppeteera i Playwrighta — mierzą tę przeglądarkę, w której rzecz nap
 node scripts/bramka-fazy.mjs        # kolejność faz i zawartość karty produktowej
 node scripts/bramka-bitmapy.mjs     # dokładnie dwie bitmapy w całym projekcie
 node scripts/bramka-blask.mjs       # krem przygasza blask — z kontrolą negatywną
-node scripts/bramka-podpowiedz.mjs  # podpowiedź gestu jest widoczna i wędruje po czole
+node scripts/bramka-podpowiedz.mjs  # podpowiedź gestu jest widoczna i wędruje po postaci
 ```
 
 Każda przyjmuje `--url <adres>` albo `--podglad` (mierzy `npm run preview` zamiast serwera

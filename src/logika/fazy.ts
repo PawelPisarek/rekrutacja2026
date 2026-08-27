@@ -11,57 +11,57 @@ export interface StanFaz {
 }
 
 /**
- * Ile CZOLA POSTACI musi byc zakryte kremem, zeby uznac runde za wygrana.
+ * Ile SYLWETKI POSTACI musi byc zakryte kremem, zeby uznac runde za wygrana.
  *
- * ⚠️ MIANOWNIK ZMIENIAL SIE JUZ DWA RAZY I ZA KAZDYM PROG BYL PRZELICZANY POMIAREM, a nie
- * przepisywany. Do zadania C2 liczyl sie prostokat 0,08..0,92 na obu osiach (70,6% maski), potem
- * czolo chmurki (2,38%), a od zamiany sylwetki na kapsule — czolo kapsuly: 8,55% maski (policzone,
- * `logika/chmurka.ts`, pilnuje `chmurka.test.ts`). Mianownik urosl ponad trzykrotnie, wiec liczba
- * 0,85 znaczy dzis co innego niz wczoraj i musiala zostac zmierzona od nowa.
+ * ⛔ DOBRANY DO GESTU, KTORY CZLOWIEK WYKONUJE BEZ INSTRUKCJI — NIE DO IDEALNEGO PRZEJAZDU.
  *
- * Zmierzone 2026-08-27 sonda CDP na zywej scenie, pedzel o promieniu 0,055, wysychanie na stalych
- * produkcyjnych, probkowanie co 60 ms przez 2,2 s (`msKlatki` = 16,7, wiec petla klatki nie
- * przymarzla i pomiar dotyczy prawdziwego uplywu czasu):
+ * Uzytkownik zglosil z prawdziwego urzadzenia: „nadal maze po ekranie przez pare sekund i nie
+ * zmienia sie na noc". Przyczyna nie byla w tej stalej, tylko w MIANOWNIKU: liczyl sie waski pas
+ * czola, wiec punkty dostawal wylacznie ten, kto o tym pasie WIEDZIAL. Obszarem liczonym jest dzis
+ * cala sylwetka (`obszarWroga` / `czyChmurka`), a prog zostal zmierzony od nowa tym samym
+ * przyrzadem przed zmiana i po niej.
  *
- *   jedno przeciagniecie w poprzek czola  →  szczyt 0,574, prog NIEOSIAGNIETY ani razu
- *   dwa przeciagniecia w dwoch rzedach    →  szczyt 1,000, nad progiem od 0,06 s do ponad 2,1 s
- *   trzy przeciagniecia                   →  szczyt 1,000, bez roznicy wobec dwoch
+ * Zmierzone 2026-08-28, `scripts/mierz-gesty.mjs` na zywej scenie (szczyt pokrycia; w nawiasie
+ * najdluzsze nieprzerwane okno nad 0,55):
  *
- * ⚠️ POWTORZONE 2026-08-27 PO PRZEPOLOWIENIU TEMPA WYSYCHANIA (`STALE_WYSYCHANIA`: 0,14 / 0,22
- * → 0,07 / 0,11), bo wolniejsze schniecie trzyma pokrycie nad progiem dluzej i mogloby zrobic prog
- * DARMOWYM. Nie zrobilo — jedno przeciagniecie dalej nie dochodzi do progu na ZADNEJ wysokosci:
+ *   gest                                  mianownik = czolo    mianownik = SYLWETKA
+ *   poziomo przez srodek kafla                  0,000                0,000  (—)
+ *   krzyz przez caly kafel                      0,126                0,120  (—)
+ *   bazgranie po kaflu, szesc pociagniec        0,711                0,711  (2,58 s)
+ *   celnie w pas czola, dwa przejazdy           1,000                0,414  (—)
+ *   bazgranie po samej maskotce, piec pociagniec 1,000               0,984  (4,28 s)
  *
- *   jedno przeciagniecie, y = 0,585 / 0,600 / 0,615 / 0,645  →  szczyt 0,589 / 0,671 / 0,703 / 0,637,
- *                                                               prog NIEOSIAGNIETY ani razu
- *   dwa przeciagniecia w dwoch rzedach                       →  szczyt 1,000, nad progiem
- *                                                               od 0,06 s do 3,79 s
+ * ⛔ DLACZEGO 0,55, A NIE MNIEJ I NIE WIECEJ. Prog musi lezec MIEDZY dwiema zmierzonymi liczbami:
  *
- * ⛔ PROG JEST OSIAGALNY, ALE NIE DARMOWY, i o to chodzilo. `CZAS_POTWIERDZENIA` wynosi 1 s,
- * wiec DOMYKAJA GO DOKLADNIE DWA przejazdy: jeden nie dochodzi nawet do progu (najwyzej 0,703),
- * dwa trzymaja sie nad nim dluzej, niz trwa potwierdzenie. Trzeci nic nie dodaje. Wysychanie
- * zabiera calosc po okolo 8,9 s (bylo 4,7 s), wiec runda dalej jest wyscigiem — tylko wolniejszym.
+ *  - NAD sufitem jednego przejazdu. Najkorzystniejsze mozliwe pojedyncze pociagniecie zakrywa
+ *    0,299 sylwetki (policzone po siatce maski, test „jeden poziomy przejazd..." w
+ *    `chmurka.test.ts`). 0,55 to 1,84 raza wiecej, wiec „jeden ruch nie domyka rundy" zostaje
+ *    wlasnoscia GEOMETRII, a nie ciasno dobranej stalej.
+ *  - POD tym, co daje bazgranie po kaflu. Szczyt 0,711 i 2,58 s nad progiem, czyli PIEC RAZY
+ *    dluzej niz `CZAS_POTWIERDZENIA` — runda domyka sie takze wtedy, gdy gracz jest duzo
+ *    niechlujniejszy od przyrzadu.
  *
- * ⚠️ To, ze jeden przejazd NIE domyka fazy, jest wlasnoscia GEOMETRII, a nie tej stalej — i jest
- * ZMIERZONE TA SAMA WIELKOSCIA, o ktorej mowi to zdanie. Test „jeden poziomy przejazd nie domyka
- * progu pokrycia" (`chmurka.test.ts`) przebiega WSZYSTKIE wysokosci ulozenia pociagniecia i liczy
- * najwiekszy mozliwy udzial czola pod jednym ruchem: 0,744 przy progu 0,85.
+ * Dwa dobrze polozone przejazdy przez postac daja 0,576 (policzone), wiec prog domykaja DWA
+ * przejazdy — tyle, ile trzeba, zeby „trzeba rozsmarowac" zostalo prawda, i ani jednego wiecej.
  *
- * ⛔ POPRZEDNIA WERSJA TEGO ZDANIA POWOLYWALA SIE NA SLABSZY TEST — „pasmo czola wyzsze od
- * srednicy pedzla". Ta nierownosc wyklucza wylacznie pokrycie 100%, a prog to 0,85, wiec
- * przepuscilaby geometrie domykana jednym ruchem (recenzja zadania F, uwaga W2). Zmierzone przy
- * okazji naprawy: gdyby promien pedzla urosl z 0,055 do 0,070, jeden przejazd dawalby 0,914 —
- * nowy test to lapie, stary przechodzilby dalej.
- *
- * Obnizenie progu obeszloby ten warunek — dlatego prog zostaje tam, gdzie byl, i to ksztalt jest
- * do niego dopasowany.
+ * ⚠️ CZEGO 0,55 NIE NAPRAWIA: pojedyncze poziome pociagniecie przez SAM SRODEK KAFLA dalej daje
+ * 0,000, bo srodek kafla lezy NAD postacia (sylwetka: y 0,552..0,868). Zadna wartosc progu tego
+ * nie ruszy — to jest polozenie postaci, pilnowane osobnym testem. Od pokazania, gdzie smarowac,
+ * jest podpowiedz gestu (`ui/podpowiedz.ts`).
  */
-export const PROG_POKRYCIA = 0.85;
-/** Ile sekund prog pokrycia musi sie utrzymac bez przerwy, zeby faza sie przelaczyla. */
-export const CZAS_POTWIERDZENIA = 1;
+export const PROG_POKRYCIA = 0.55;
+/**
+ * Ile sekund prog pokrycia musi sie utrzymac bez przerwy, zeby faza sie przelaczyla.
+ *
+ * ⚠️ POLOWA POPRZEDNIEJ WARTOSCI (1 s), bo to jest CZYSTE CZEKANIE: gracz juz zrobil swoje,
+ * a kafel jeszcze nie odpowiedzial. Zapas na drganie licznika zostaje ogromny — najkrotsze
+ * zmierzone okno nad progiem (bazgranie po kaflu) to 2,58 s, czyli PIEC razy tyle.
+ */
+export const CZAS_POTWIERDZENIA = 0.5;
 /** Jak dlugo karta produktowa stoi sama z siebie, zanim zabawa pojedzie dalej. */
-export const CZAS_KARTY = 3;
+export const CZAS_KARTY = 2.5;
 /** Dlugosc animacji zachodu miedzy dniem a noca. */
-export const CZAS_ZACHODU = 1.5;
+export const CZAS_ZACHODU = 1.2;
 
 export const STAN_POCZATKOWY: StanFaz = { faza: 'dzien-gra', wPelniOd: 0, wFazieOd: 0 };
 

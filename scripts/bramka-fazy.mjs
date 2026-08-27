@@ -9,8 +9,8 @@
 // przed nieskonczona petla, a nie asercja — bramka nie sprawdza, ile krokow zajelo przejscie.
 //
 // ⚠️ MASZYNA JEDZIE NA PRZEWIJANIU, ALE MALOWANIE JEST PRAWDZIWE. `przewin` dopycha wylacznie
-// zegar faz; zeby faza `-gra` przeszla dalej, pokrycie CZOLA chmurki musi naprawde przekroczyc
-// prog — bramka maluje po nim tymi samymi odcinkami, co palec gracza, i czeka na klatki, w ktorych
+// zegar faz; zeby faza `-gra` przeszla dalej, pokrycie SYLWETKI musi naprawde przekroczyc prog —
+// bramka maluje po niej tymi samymi odcinkami, co palec gracza, i czeka na klatki, w ktorych
 // licznik pokrycia wraca z GPU. Bez tego przejscie w noc bylo by zaliczone na nieaktualnym
 // odczycie sprzed wyczyszczenia maski.
 //
@@ -58,15 +58,22 @@ const SKRYPT = `(async () => {
   let krokow = 0;
   for (; krokow < LIMIT && widziane[widziane.length - 1] !== 'noc-karta'; krokow++) {
     await klatka();
-    // Malujemy tylko wtedy, gdy jest co malowac — dwa przeciagniecia w poprzek CZOLA postaci.
-    // ⚠️ WSPOLRZEDNE PRZELICZONE PO ZAMIANIE SYLWETKI NA KAPSULE. Czolo lezy dzis w prostokacie
-    // x 0,114..0,886, y 0,552..0,676 przestrzeni maski (logika/chmurka.ts, czyCzolo) — czyli
-    // jest ponad dwa razy szersze niz przy poprzednim ksztalcie. Poprzednie przejazdy 0,32..0,68
-    // zamalowywalyby dzis sam srodek i bramka wisialaby na limicie petli zamiast pokazac, ze
-    // przejscie faz nie dziala.
+    // Malujemy tylko wtedy, gdy jest co malowac — piec przeciagniec w poprzek CALEJ POSTACI.
+    // ⛔ WSPOLRZEDNE PRZELICZONE 2026-08-28, BO ZMIENIL SIE MIANOWNIK. Do tej pory staly tu dwa
+    // przejazdy przez pas czola (y 0,585 i 0,645) — przy mianowniku „czolo" dawaly pokrycie
+    // 1,000, a przy mianowniku „cala sylwetka" daja 0,414, czyli PONIZEJ progu 0,55. Bramka
+    // wisialaby wiec na limicie petli i meldowala „kolejnosc faz sie nie zgadza" zamiast pokazac,
+    // ze to gest jest za skapy. Sylwetka lezy w prostokacie x 0,110..0,890, y 0,552..0,868
+    // (logika/chmurka.ts, czyChmurka); piec przejazdow co 0,06 zakrywa ja z zapasem (zmierzone
+    // przyrzadem scripts/mierz-gesty.mjs, gest bazgranie-maskotka: szczyt 0,984).
+    // UWAGA: zaden odwrocony apostrof w tym komentarzu — caly SKRYPT jest szablonem w apostrofach
+    // odwroconych i pierwszy taki znak zamknalby go w polowie.
     if (s.faza().endsWith('-gra') && s.pokrycie() < 0.95) {
-      s.pociagnij(0.12, 0.585, 0.88, 0.585, 30);
-      s.pociagnij(0.12, 0.645, 0.88, 0.645, 30);
+      s.pociagnij(0.12, 0.58, 0.88, 0.58, 30);
+      s.pociagnij(0.88, 0.64, 0.12, 0.64, 30);
+      s.pociagnij(0.12, 0.70, 0.88, 0.70, 30);
+      s.pociagnij(0.88, 0.76, 0.12, 0.76, 30);
+      s.pociagnij(0.12, 0.82, 0.88, 0.82, 30);
     }
     s.przewin(KROK);
     zapisz();

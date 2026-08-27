@@ -104,10 +104,10 @@ console.log(JSON.stringify({
     blaskPrzed: +zKremem.przed.blask.toFixed(4),
     blaskPo: +zKremem.po.blask.toFixed(4),
     spadek: +spadek.toFixed(4),
-    // Pokrycie CZOLA chmurki. Ma zostac zerowe w obu ramionach — malujemy po szkle, nie po
-    // chmurce. Gdyby rosło, winieta (sterowana pokryciem) rozjasnialaby wycinek i mieszala
+    // Pokrycie SYLWETKI (obszar liczony). Ma zostac zerowe w obu ramionach — malujemy po szkle,
+    // nie po postaci. Gdyby rosło, winieta (sterowana pokryciem) rozjasnialaby wycinek i mieszala
     // sie do wyniku; te dwie liczby sa dowodem, ze sie nie miesza.
-    pokrycieCzola: +zKremem.po.pokrycie.toFixed(4),
+    pokrycieObszaru: +zKremem.po.pokrycie.toFixed(4),
     luminancjaPrzed: +zKremem.przed.jasnosc.toFixed(4),
     luminancjaPo: +zKremem.po.jasnosc.toFixed(4),
   },
@@ -115,7 +115,7 @@ console.log(JSON.stringify({
     blaskPrzed: +kontrola.przed.blask.toFixed(4),
     blaskPo: +kontrola.po.blask.toFixed(4),
     dryf: +dryf.toFixed(4),
-    pokrycieCzola: +kontrola.po.pokrycie.toFixed(4),
+    pokrycieObszaru: +kontrola.po.pokrycie.toFixed(4),
   },
   zapasWobecKontroli: zapas === Infinity ? 'nieskonczony' : +zapas.toFixed(1),
   progi: { minimalnySpadek: MINIMALNY_SPADEK, krotnoscWobecKontroli: KROTNOSC_WOBEC_KONTROLI },
